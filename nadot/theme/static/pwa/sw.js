@@ -7,6 +7,7 @@ const PRECACHE_URLS = [
   '/static/messaging/notifications.js',
   '/static/js/animations.js',
   '/static/js/neural-aurora.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
   '/static/css/custom_styles.css',
   '/static/pwa/icons/icon-192x192.png',
   '/static/pwa/icons/icon-512x512.png',

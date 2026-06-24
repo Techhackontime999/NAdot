@@ -32,11 +32,11 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         # Content Security Policy
         csp_directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com",
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: https:",
-            "connect-src 'self' ws: wss:",
+            "connect-src 'self' https: ws: wss:",
             "media-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",

@@ -26,12 +26,27 @@
       z-index: -1;
       pointer-events: none;
       opacity: 1;
+      will-change: opacity;
+    }
+    #neural-aurora-bg::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: var(--bg-primary);
+      opacity: 0.15;
+      transition: opacity 0.3s ease;
+    }
+    [data-theme="dark"] #neural-aurora-bg::after {
+      opacity: 0.08;
     }
     .nav-blur {
       background: var(--bg-glass);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
       border-bottom: 1px solid var(--border-subtle);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
     }
     #loader-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
@@ -90,7 +105,7 @@
     }
   </style>
 </head>
-<body class="bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
+<body class="text-[var(--text-primary)] antialiased">
 
   <div id="loader-overlay">
     <div class="loader-inner">

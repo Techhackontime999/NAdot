@@ -12,11 +12,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root { color-scheme: light dark; }
-    body { background: var(--bg-primary); color: var(--text-primary); font-family: Inter, system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 1rem; }
+    body { background: transparent; color: var(--text-primary); font-family: Inter, system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 1rem; }
+    #neural-aurora-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; will-change: opacity; }
+    #neural-aurora-bg::after { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg-primary); opacity: 0.15; transition: opacity 0.3s ease; }
+    [data-theme="dark"] #neural-aurora-bg::after { opacity: 0.08; }
   </style>
+  <script>!function(){try{var t=localStorage.getItem('nadot-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark'),document.documentElement.classList.add('dark');else document.documentElement.setAttribute('data-theme','light')}catch(e){}}()</script>
 </head>
 <body>
-  <div class="auth-card" style="max-width:440px;text-align:center">
+  <div id="neural-aurora-bg"></div>
+  <div class="auth-card" style="max-width:440px;text-align:center;position:relative;z-index:1">
     <div class="w-16 h-16 rounded-xl bg-amber-500/10 flex items-center justify-center mx-auto mb-5">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
     </div>
@@ -29,5 +34,7 @@
     </div>
     <p style="margin-top:2rem;font-size:0.75rem;color:var(--text-muted)">NAdot — a product of <strong>NEURAL AURORA</strong></p>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="{% static 'js/neural-aurora.js' %}"></script>
 </body>
 </html>
