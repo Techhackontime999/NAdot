@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for transforming the Django admin panel of the LinkUp professional networking application into a feature-rich, professional administrative interface. The enhanced admin panel will provide administrators with powerful tools for managing users, content, jobs, network connections, and messaging while offering improved visual design, advanced functionality, and comprehensive analytics.
+This document specifies the requirements for transforming the Django admin panel of the NAdot professional networking application into a feature-rich, professional administrative interface. The enhanced admin panel will provide administrators with powerful tools for managing users, content, jobs, network connections, and messaging while offering improved visual design, advanced functionality, and comprehensive analytics.
 
 ## Glossary
 
@@ -27,12 +27,12 @@ This document specifies the requirements for transforming the Django admin panel
 
 ### Requirement 1: Admin Panel Branding and Visual Identity
 
-**User Story:** As an administrator, I want the admin panel to have custom branding and professional styling, so that it reflects the LinkUp brand identity and provides a modern user experience.
+**User Story:** As an administrator, I want the admin panel to have custom branding and professional styling, so that it reflects the NAdot brand identity and provides a modern user experience.
 
 #### Acceptance Criteria
 
-1. THE Admin_Panel SHALL display "LinkUp Administration" as the site header
-2. THE Admin_Panel SHALL display "LinkUp Admin Portal" as the site title in browser tabs
+1. THE Admin_Panel SHALL display "NAdot Administration" as the site header
+2. THE Admin_Panel SHALL display "NAdot Admin Portal" as the site title in browser tabs
 3. THE Admin_Panel SHALL apply custom CSS styling with a professional color scheme
 4. WHEN an Administrator views any admin page, THE Admin_Panel SHALL display consistent branding elements
 5. THE Admin_Panel SHALL include a custom index template with welcome message and quick links

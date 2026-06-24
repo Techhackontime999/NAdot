@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design outlines the transformation of the Django LinkUp application from a development environment to a production-ready system. The solution implements a multi-layered approach to production readiness:
+This design outlines the transformation of the Django NAdot application from a development environment to a production-ready system. The solution implements a multi-layered approach to production readiness:
 
 1. **Environment Separation**: Split settings into base, development, and production modules
 2. **Database Migration**: Transition from SQLite to PostgreSQL with environment-based configuration
@@ -478,7 +478,7 @@ professional_network/
   loglevel = "info"
   
   # Process naming
-  proc_name = "linkup_gunicorn"
+  proc_name = "NAdot_gunicorn"
   
   # Server mechanics
   daemon = False

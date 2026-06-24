@@ -7,18 +7,18 @@ This implementation plan breaks down the professional admin panel enhancement in
 ## Tasks
 
 - [ ] 1. Set up admin infrastructure and utilities
-  - [x] 1.1 Create custom AdminSite configuration in linkup/admin.py
-    - Define LinkUpAdminSite class with custom site_header, site_title, and index_title
+  - [x] 1.1 Create custom AdminSite configuration in nadot/admin.py
+    - Define NAdotAdminSite class with custom site_header, site_title, and index_title
     - Override get_app_list() to organize apps in logical order
     - _Requirements: 1.1, 1.2_
   
-  - [x] 1.2 Create admin utility functions in linkup/admin_utils.py
+  - [x] 1.2 Create admin utility functions in nadot/admin_utils.py
     - Implement ExportCSVMixin with export_as_csv() method
     - Implement truncate_html() function for content truncation
     - Implement status_badge() function for generating HTML badges
     - _Requirements: 6.7, 8.2, 10.8, 11.5_
   
-  - [x] 1.3 Create custom template tags in linkup/templatetags/admin_extras.py
+  - [x] 1.3 Create custom template tags in nadot/templatetags/admin_extras.py
     - Implement thumbnail() template tag for image thumbnails
     - Implement percentage_bar() template tag for progress bars
     - _Requirements: 4.1, 4.6_
@@ -305,7 +305,7 @@ This implementation plan breaks down the professional admin panel enhancement in
     - **Validates: Requirements 14.2**
 
 - [ ] 11. Implement dashboard with statistics
-  - [x] 11.1 Create DashboardStats service class in linkup/admin_dashboard.py
+  - [x] 11.1 Create DashboardStats service class in nadot/admin_dashboard.py
     - Implement get_user_stats() method
     - Implement get_content_stats() method
     - Implement get_job_stats() method
@@ -326,7 +326,7 @@ This implementation plan breaks down the professional admin panel enhancement in
     - Add welcome message and quick links
     - _Requirements: 1.5, 2.1, 2.7_
   
-  - [x] 11.4 Override index() method in LinkUpAdminSite
+  - [x] 11.4 Override index() method in NAdotAdminSite
     - Call DashboardStats methods to get data
     - Pass statistics to template context
     - _Requirements: 2.1_
@@ -415,13 +415,13 @@ This implementation plan breaks down the professional admin panel enhancement in
     - _Requirements: 13.4, 15.4_
 
 - [ ] 18. Final integration and testing
-  - [x] 18.1 Register all admin classes with LinkUpAdminSite
+  - [x] 18.1 Register all admin classes with NAdotAdminSite
     - Update each app's admin.py to use custom admin site
     - Verify all models are accessible
     - _Requirements: 1.1_
   
   - [x] 18.2 Update project URLs to use custom admin site
-    - Modify linkup/urls.py to use LinkUpAdminSite instance
+    - Modify nadot/urls.py to use NAdotAdminSite instance
     - _Requirements: 1.1_
   
   - [x] 18.3 Write property test for consistent branding across pages

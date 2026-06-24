@@ -1,6 +1,6 @@
 import os, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'professional_network.settings.development')
-sys.path.insert(0, r'C:\Users\ADMIN\Downloads\Project\LinkUp\linkup')
+sys.path.insert(0, r'C:\Users\ADMIN\Downloads\Project\NAdot\nadot')
 import django
 django.setup()
 

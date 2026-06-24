@@ -1,4 +1,4 @@
-$lines = Get-Content 'linkup/messaging/consumers.py'
+$lines = Get-Content 'nadot/messaging/consumers.py'
 $insertPos = $null
 for ($i = 0; $i -lt $lines.Count; $i++) {
     if ($lines[$i] -like '*async def read_receipt_update(self, event):*' -and $i -gt 1000) {
@@ -28,7 +28,7 @@ if ($insertPos) {
         ''
     )
     $lines = $lines[0..($insertPos-1)] + $handler + $lines[$insertPos..($lines.Count-1)]
-    $lines | Set-Content 'linkup/messaging/consumers.py'
+    $lines | Set-Content 'nadot/messaging/consumers.py'
     Write-Host 'Inserted user_status handler before read_receipt_update at line' $insertPos
 } else {
     Write-Host 'Could not find insertion point'

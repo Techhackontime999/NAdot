@@ -1,15 +1,16 @@
 <div align="center">
 
-# 🔗 LinkUp
+# 🔗 NAdot
 
 ### Full Stack Professional Network Platform
+### by **NEURAL AURORA**
 
 [![Django](https://img.shields.io/badge/Django-5.2.10-green.svg)](https://djangoproject.com)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.0.0-success.svg)](https://github.com/Techhackontime999/LinkUp/releases)
-[![Status](https://img.shields.io/badge/Status-Released-brightgreen.svg)](https://github.com/Techhackontime999/LinkUp/releases)
-[![GitHub stars](https://img.shields.io/github/stars/Techhackontime999/LinkUp?style=social)](https://github.com/Techhackontime999/LinkUp/stargazers)
+[![Version](https://img.shields.io/badge/Version-2.0.0-success.svg)](https://github.com/Techhackontime999/NAdot/releases)
+[![Status](https://img.shields.io/badge/Status-Released-brightgreen.svg)](https://github.com/Techhackontime999/NAdot/releases)
+[![GitHub stars](https://img.shields.io/github/stars/Techhackontime999/NAdot?style=social)](https://github.com/Techhackontime999/NAdot/stargazers)
 
 **A modern, feature-rich professional networking platform built with Django, WebSockets, and Tailwind CSS.**
 
@@ -23,7 +24,7 @@
 
 ## 🌟 Overview
 
-**LinkUp** is a comprehensive professional networking platform designed to connect professionals, facilitate job opportunities, and enable meaningful interactions. Built independently using Python/Django and modern web technologies, it delivers a seamless experience for users to build their professional network — complete with real-time messaging, live notifications, job listings, and rich content creation.
+**NAdot** is a comprehensive professional networking platform designed to connect professionals, facilitate job opportunities, and enable meaningful interactions. Built independently using Python/Django and modern web technologies, it delivers a seamless experience for users to build their professional network — complete with real-time messaging, live notifications, job listings, and rich content creation.
 
 > Built using **vibe coding** — the entire full-stack platform developed independently in Python, Django, Tailwind CSS, JavaScript, and Django Channels.
 
@@ -123,8 +124,8 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Techhackontime999/LinkUp.git
-cd LinkUp
+git clone https://github.com/Techhackontime999/NAdot.git
+cd NAdot
 
 # 2. Create and activate virtual environment
 python3 -m venv venv
@@ -171,7 +172,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 # Database (PostgreSQL for production)
 DB_ENGINE=django.db.backends.postgresql
-DB_NAME=linkup_db
+DB_NAME=nadot_db
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 DB_HOST=localhost
@@ -206,7 +207,7 @@ CSRF_TRUSTED_ORIGINS=https://yourdomain.com
 ## 📁 Project Structure
 
 ```
-LinkUp/
+NAdot/
 ├── core/                     # Security middleware, validators, search views
 ├── users/                    # Auth, profiles, experience, education
 ├── feed/                     # Posts, comments, likes
@@ -350,7 +351,7 @@ Resolved critical WebSocket event handling issues preventing real-time message d
 
 **Root cause:** Django Channels WebSocket consumers were missing handlers for several event types — `multi_tab_sync`, `notification_message`, `user_status`, `read_receipt_update`, and `badge_update` — causing `ValueError: No handler for message type X` and connection drops.
 
-**Fix:** Added all missing event handlers to both `ChatConsumer` and `NotificationsConsumer` in `linkup/messaging/consumers.py` (+60 lines).
+**Fix:** Added all missing event handlers to both `ChatConsumer` and `NotificationsConsumer` in `nadot/messaging/consumers.py` (+60 lines).
 
 **Impact:**
 - Messages now appear instantly for both sender and receiver
@@ -361,7 +362,7 @@ Resolved critical WebSocket event handling issues preventing real-time message d
 
 ### v1.0.0 — February 4, 2026 *(Initial Release)*
 
-First official release of LinkUp.
+First official release of NAdot.
 
 **Core platform delivered:**
 - User authentication, profiles, experience, and education
@@ -436,18 +437,20 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## 📞 Contact & Support
 
-- **Bug reports:** [GitHub Issues](https://github.com/Techhackontime999/LinkUp/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/Techhackontime999/LinkUp/discussions)
+- **Bug reports:** [GitHub Issues](https://github.com/Techhackontime999/NAdot/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Techhackontime999/NAdot/discussions)
 - **Email:** amitkumarkh010102006@gmail.com
 
 ---
 
 <div align="center">
 
+**NAdot — a product of [NEURAL AURORA](https://github.com/Techhackontime999)**
+
 **Made with ❤️ by [Techhackontime999](https://github.com/Techhackontime999)**
 
 ⭐ Star this repo if you find it useful!
 
-[⬆ Back to top](#-linkup)
+[⬆ Back to top](#-nadot)
 
 </div>

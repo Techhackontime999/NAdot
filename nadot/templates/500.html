@@ -1,0 +1,33 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Error - NAdot</title>
+  {% tailwind_css %}
+  <link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: light dark; }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: Inter, system-ui, -apple-system, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="auth-card" style="max-width:440px;text-align:center">
+    <div class="w-16 h-16 rounded-xl bg-red-500/10 flex items-center justify-center mx-auto mb-5">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h1 style="font-size:clamp(2.5rem,10vw,4rem);font-weight:800;color:var(--text-primary);margin:0 0 0.25rem">500</h1>
+    <h2 style="font-size:clamp(1rem,4vw,1.25rem);font-weight:600;color:var(--text-primary);margin:0 0 0.5rem">Server Error</h2>
+    <p style="color:var(--text-secondary);margin-bottom:2rem;font-size:0.9rem;line-height:1.6">Oops! Something went wrong on our end. We're working to fix the issue. Please try again later.</p>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <a href="/" class="btn-primary" style="text-align:center;text-decoration:none">Go to Homepage</a>
+      <button onclick="location.reload()" class="btn-secondary" style="text-align:center">Try Again</button>
+    </div>
+    <p style="margin-top:2rem;font-size:0.75rem;color:var(--text-muted)">NAdot — a product of <strong>NEURAL AURORA</strong></p>
+  </div>
+</body>
+</html>

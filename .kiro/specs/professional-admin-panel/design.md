@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the technical approach for transforming the Django admin panel of the LinkUp professional networking application into a professional, feature-rich administrative interface. The solution leverages Django's built-in admin framework extensibility through custom ModelAdmin classes, custom templates, CSS styling, and third-party packages where appropriate.
+This design document outlines the technical approach for transforming the Django admin panel of the NAdot professional networking application into a professional, feature-rich administrative interface. The solution leverages Django's built-in admin framework extensibility through custom ModelAdmin classes, custom templates, CSS styling, and third-party packages where appropriate.
 
 The design follows Django best practices and maintains backward compatibility with existing admin customizations in the feed and messaging apps. The implementation will be incremental, allowing administrators to benefit from improvements as they are deployed.
 
@@ -52,7 +52,7 @@ The implementation will be organized across existing Django apps:
 - **network/admin.py**: Enhanced admin for Connection, new admin for Follow
 - **feed/admin.py**: Enhanced existing Post and Comment admin
 - **messaging/admin.py**: Enhanced existing Message, Notification, UserStatus admin
-- **linkup/admin.py**: Custom AdminSite configuration, dashboard views
+- **nadot/admin.py**: Custom AdminSite configuration, dashboard views
 - **static/admin/**: Custom CSS and JavaScript files
 - **templates/admin/**: Custom admin templates
 
@@ -62,14 +62,14 @@ The implementation will be organized across existing Django apps:
 
 **Purpose**: Customize the admin site branding and behavior
 
-**Location**: `linkup/admin.py`
+**Location**: `nadot/admin.py`
 
 **Interface**:
 ```python
-class LinkUpAdminSite(AdminSite):
-    site_header: str = "LinkUp Administration"
-    site_title: str = "LinkUp Admin Portal"
-    index_title: str = "Welcome to LinkUp Administration"
+class NAdotAdminSite(AdminSite):
+    site_header: str = "NAdot Administration"
+    site_title: str = "NAdot Admin Portal"
+    index_title: str = "Welcome to NAdot Administration"
     
     def index(request: HttpRequest) -> HttpResponse:
         """Custom dashboard view with statistics"""
@@ -90,7 +90,7 @@ class LinkUpAdminSite(AdminSite):
 
 **Purpose**: Calculate and cache dashboard metrics
 
-**Location**: `linkup/admin_dashboard.py`
+**Location**: `nadot/admin_dashboard.py`
 
 **Interface**:
 ```python
@@ -436,7 +436,7 @@ class UserStatusAdmin(ModelAdmin):
 
 **Purpose**: Provide CSV export functionality
 
-**Location**: `linkup/admin_utils.py`
+**Location**: `nadot/admin_utils.py`
 
 **Interface**:
 ```python
@@ -468,7 +468,7 @@ class ExportCSVMixin:
 
 **Purpose**: Reusable template utilities
 
-**Location**: `linkup/templatetags/admin_extras.py`
+**Location**: `nadot/templatetags/admin_extras.py`
 
 **Interface**:
 ```python
@@ -549,7 +549,7 @@ Post
 
 ### Property 1: Consistent Branding Across Pages
 
-*For any* admin page in the Admin_Panel, the page should display the custom site header "LinkUp Administration" and maintain consistent branding elements.
+*For any* admin page in the Admin_Panel, the page should display the custom site header "NAdot Administration" and maintain consistent branding elements.
 
 **Validates: Requirements 1.4**
 
@@ -881,7 +881,7 @@ class UserAdminPropertyTests(TestCase):
         For any content, truncation should limit output to 100 characters 
         plus ellipsis.
         """
-        from linkup.admin_utils import truncate_html
+        from NAdot.admin_utils import truncate_html
         
         truncated = truncate_html(content, 100)
         
@@ -939,7 +939,7 @@ jobs/
     test_admin_properties.py
     test_admin_export.py          # CSV export tests
 
-linkup/
+nadot/
   tests/
     test_admin_dashboard.py       # Dashboard unit tests
     test_admin_dashboard_properties.py  # Dashboard property tests

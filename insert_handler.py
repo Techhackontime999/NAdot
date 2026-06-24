@@ -2,7 +2,7 @@ import fileinput
 import sys
 
 lines = []
-with open('linkup/messaging/consumers.py', 'r') as f:
+with open('nadot/messaging/consumers.py', 'r') as f:
     lines = f.readlines()
 
 # Insert read_receipt_update before multi_tab_sync at NotificationsConsumer (around line 1047)
@@ -29,7 +29,7 @@ if insert_pos:
     ]
     lines[insert_pos:insert_pos] = handler
 
-    with open('linkup/messaging/consumers.py', 'w') as f:
+    with open('nadot/messaging/consumers.py', 'w') as f:
         f.writelines(lines)
 
     print('Inserted read_receipt_update handler at line', insert_pos)

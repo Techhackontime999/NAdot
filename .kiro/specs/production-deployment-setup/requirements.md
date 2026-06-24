@@ -2,11 +2,11 @@
 
 ## Introduction
 
-This document specifies the requirements for preparing the Django LinkUp project (a LinkedIn clone) for production deployment. The system currently runs in development mode with SQLite and needs to be transformed into a production-ready application with PostgreSQL, proper security configurations, environment-based settings, and deployment readiness for platforms like Heroku, DigitalOcean, AWS, or similar cloud providers.
+This document specifies the requirements for preparing the Django NAdot project (a LinkedIn clone) for production deployment. The system currently runs in development mode with SQLite and needs to be transformed into a production-ready application with PostgreSQL, proper security configurations, environment-based settings, and deployment readiness for platforms like Heroku, DigitalOcean, AWS, or similar cloud providers.
 
 ## Glossary
 
-- **System**: The Django LinkUp application and its deployment configuration
+- **System**: The Django NAdot application and its deployment configuration
 - **Production_Environment**: The live server environment where the application will be deployed
 - **Development_Environment**: The local development environment used by developers
 - **Environment_Variable**: Configuration values stored outside the codebase for security and flexibility

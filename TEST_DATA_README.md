@@ -1,10 +1,10 @@
-# Test Data Seeding System for LinkUp
+# Test Data Seeding System for NAdot
 
 This document explains how to use the test data seeding system for your LinkedIn clone project.
 
 ## Overview
 
-The test data seeding system allows you to quickly populate your LinkUp application with realistic test data that makes the website feel active and professional - perfect for video recordings, demos, and testing.
+The test data seeding system allows you to quickly populate your NAdot application with realistic test data that makes the website feel active and professional - perfect for video recordings, demos, and testing.
 
 ## Features
 
@@ -109,8 +109,8 @@ All test users have the password: `password123`
 ## File Structure
 
 ```
-linkup/
-├── linkup/
+nadot/
+├── nadot/
 │   └── management/
 │       └── commands/
 │           ├── seed_test_data.py    # Main seeding command

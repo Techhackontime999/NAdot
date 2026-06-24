@@ -1,0 +1,310 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#05050a" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="{% static 'pwa/manifest.json' %}">
+  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'pwa/icons/icon-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{% static 'pwa/icons/icon-512x512.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'pwa/icons/icon-192x192.png' %}">
+  <meta name="apple-mobile-web-app-title" content="NAdot">
+  <title>NAdot — Professional Network</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><text x='16' y='22' font-size='18' font-weight='bold' text-anchor='middle' fill='white'>N</text></svg>">
+  {% tailwind_css %}
+  <link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
+  <script>!function(){try{var t=localStorage.getItem('nadot-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark'),document.documentElement.classList.add('dark');else document.documentElement.setAttribute('data-theme','light')}catch(e){}}()</script>
+  {% block extra_css %}{% endblock %}
+    <style>
+    #neural-aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 1;
+    }
+    .nav-blur {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    #loader-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+      background: #fafafa;
+      transition: opacity 1.2s ease, visibility 1.2s ease;
+    }
+    [data-theme="dark"] #loader-overlay { background: #05050a; }
+    #loader-overlay.hide { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+    .loader-inner {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+    }
+    #main { animation: lcontent-in 0.7s ease 2.6s both; }
+    @keyframes lcontent-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .loader-spinner {
+      width: 48px; height: 48px; margin-bottom: 28px;
+      border: 3px solid rgba(124,58,237,0.15);
+      border-top-color: #7c3aed;
+      border-radius: 50%;
+      animation: lspin 0.9s linear infinite;
+    }
+    [data-theme="dark"] .loader-spinner {
+      border-color: rgba(139,92,246,0.2);
+      border-top-color: #8b5cf6;
+    }
+    @keyframes lspin { to { transform: rotate(360deg); } }
+    .loader-title {
+      font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #7c3aed;
+      margin: 0 0 6px; opacity: 0;
+      animation: lfade-up 0.5s ease 0.2s forwards;
+    }
+    [data-theme="dark"] .loader-title { color: #8b5cf6; }
+    .loader-tagline {
+      font-size: 13px; font-weight: 400; color: #a1a1aa;
+      margin: 0; letter-spacing: 0.2px;
+      opacity: 0; animation: lfade-up 0.5s ease 0.4s forwards;
+    }
+    [data-theme="dark"] .loader-tagline { color: #5c5c7a; }
+    .loader-bar {
+      position: fixed; bottom: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, #7c3aed, #14b8a6, #06b6d4);
+      width: 0; animation: lfill 1.6s ease-in-out 0.1s forwards;
+    }
+    [data-theme="dark"] .loader-bar {
+      background: linear-gradient(90deg, #8b5cf6, #2dd4bf, #22d3ee);
+    }
+    @keyframes lfade-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lfill {
+      0% { width: 0; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
+
+  <div id="loader-overlay">
+    <div class="loader-inner">
+      <div class="loader-spinner"></div>
+      <h1 class="loader-title">NAdot</h1>
+      <p class="loader-tagline">Your Professional Network</p>
+      <p class="loader-subtitle" style="font-size:0.65rem;color:var(--text-muted);margin-top:0.25rem">a product of <strong>NEURAL AURORA</strong></p>
+    </div>
+    <div class="loader-bar"></div>
+  </div>
+  <script>(function(){var s=Date.now();function h(){var e=Date.now()-s,d=Math.max(0,1800-e);setTimeout(function(){var l=document.getElementById('loader-overlay');if(l)l.classList.add('hide')},d)}if(document.readyState==='complete')h();else window.addEventListener('load',h)})()</script>
+
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div id="neural-aurora-bg"></div>
+
+  <nav class="nav-blur sticky top-0 z-50">
+    <div class="site-container flex items-center justify-between h-14 lg:h-16">
+      <div class="flex items-center gap-6">
+        <a href="{% url 'feed:feed' %}" class="text-xl font-extrabold tracking-tight text-[var(--accent)] hover:text-[var(--accent-dark)] transition-colors no-underline">
+          NAdot
+        </a>
+        <div class="hidden md:flex items-center gap-1">
+          <a href="{% url 'feed:feed' %}" class="nav-link {% if request.resolver_match.url_name == 'feed' %}active{% endif %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>Home</span>
+          </a>
+          <a href="{% url 'network' %}" class="nav-link {% if request.resolver_match.url_name == 'network' %}active{% endif %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Network</span>
+          </a>
+          <a href="{% url 'jobs:job_list' %}" class="nav-link {% if 'jobs' in request.resolver_match.app_name %}active{% endif %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <span>Jobs</span>
+          </a>
+          <a href="{% url 'messaging:inbox' %}" class="nav-link {% if 'messaging' in request.resolver_match.app_name %}active{% endif %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Messages</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 sm:gap-2">
+        <form action="{% url 'search' %}" method="get" class="search-form">
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--text-muted)] search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" name="q" placeholder="Search people, jobs..." aria-label="Search" class="search-input">
+            <button type="button" class="search-close hidden" aria-label="Close search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </form>
+
+        <button id="theme-toggle" class="btn-ghost p-2 rounded-[var(--radius-sm)]" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+
+        {% if user.is_authenticated %}
+          <div class="relative" id="notif-container">
+            <button id="notif-btn" class="btn-ghost p-2 rounded-[var(--radius-sm)] relative" aria-label="Notifications" aria-haspopup="true" title="Notifications">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span id="notif-badge" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[var(--accent)] rounded-full text-[10px] font-bold text-white flex items-center justify-center shadow-sm" style="display:none">0</span>
+              <span class="live-dot accent sm" style="position:absolute;top:2px;left:2px;animation-duration:2.5s"></span>
+            </button>
+            <div id="notif-dropdown" class="dropdown-menu dropdown-menu-notif hidden">
+              <div class="px-3 py-2 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                <span class="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
+                <button id="mark-all-read" class="text-xs font-medium text-[var(--accent)] hover:underline">Mark all read</button>
+              </div>
+              <div id="notif-list" class="max-h-80 overflow-y-auto">
+                <div class="empty-state py-8">
+                  <svg class="empty-state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                  <p class="text-sm">No notifications yet</p>
+                </div>
+              </div>
+              <div class="border-t border-[var(--border-subtle)] px-3 py-2 flex items-center justify-between text-xs text-[var(--text-muted)]">
+                <a href="{% url 'messaging:notification_preferences_page' %}" class="hover:text-[var(--accent)]">Settings</a>
+                <a href="{% url 'messaging:notifications_list' %}" class="hover:text-[var(--accent)]">View all</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative" id="user-menu-container">
+            <button id="user-menu-btn" class="flex items-center gap-2 p-1 rounded-full hover:opacity-80 transition-opacity breathing-glow" aria-label="User menu" style="animation-duration:4s">
+              <div class="avatar avatar-sm avatar-ring">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+                {% else %}
+                {{ user.username|slice:":1"|upper }}
+                {% endif %}
+              </div>
+            </button>
+            <div id="user-dropdown" class="dropdown-menu hidden" style="min-width:180px">
+              <a href="{% url 'profile' %}" class="dropdown-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile
+              </a>
+              <div class="h-px bg-[var(--border-subtle)] my-1"></div>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item danger">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <div class="flex items-center gap-2">
+            <a href="{% url 'login' %}" class="btn-ghost text-sm font-medium">Log in</a>
+            <a href="{% url 'register' %}" class="btn-primary text-sm px-4 py-2">Join now</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" class="site-container py-6 lg:py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div id="accessibility-announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+  <div id="accessibility-status" role="status" aria-live="polite" class="sr-only"></div>
+
+  {% if user.is_authenticated %}
+  <nav class="mobile-nav">
+    <a href="{% url 'feed:feed' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'feed' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="{% url 'network' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'network' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Network</span>
+    </a>
+    <a href="{% url 'jobs:job_list' %}" class="mobile-nav-item {% if 'jobs' in request.resolver_match.app_name %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      <span>Jobs</span>
+    </a>
+    <a href="{% url 'messaging:inbox' %}" class="mobile-nav-item {% if 'messaging' in request.resolver_match.app_name %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Messages</span>
+    </a>
+  </nav>
+  {% endif %}
+
+  <script src="{% static 'js/theme-switcher.js' %}"></script>
+  <script src="{% static 'messaging/notifications.js' %}"></script>
+  <script src="{% static 'js/animations.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="{% static 'js/neural-aurora.js' %}"></script>
+  <script src="{% static 'pwa/pwa.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // --- User menu dropdown ---
+      const userMenuBtn = document.getElementById('user-menu-btn');
+      const userDropdown = document.getElementById('user-dropdown');
+      if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function(e) {
+          if (!e.target.closest('#user-menu-container')) {
+            userDropdown.classList.add('hidden');
+          }
+        });
+      }
+
+      // --- Mobile search toggle ---
+      const searchForm = document.querySelector('.search-form');
+      const searchInput = searchForm?.querySelector('.search-input');
+      const searchClose = searchForm?.querySelector('.search-close');
+      const searchIcon = searchForm?.querySelector('.search-icon');
+      if (searchForm && searchInput && searchClose && window.innerWidth < 640) {
+        searchForm.addEventListener('click', function(e) {
+          if (e.target.closest('.search-close')) {
+            searchForm.classList.remove('expanded');
+            searchInput.blur();
+            return;
+          }
+          if (!searchForm.classList.contains('expanded')) {
+            e.preventDefault();
+            searchForm.classList.add('expanded');
+            searchInput.focus();
+          }
+        });
+        document.addEventListener('click', function(e) {
+          if (searchForm.classList.contains('expanded') && !e.target.closest('.search-form')) {
+            if (!searchInput.value) {
+              searchForm.classList.remove('expanded');
+            }
+          }
+        });
+      }
+
+      // --- Theme-color meta update ---
+      window.addEventListener('themeChanged', function(e) {
+        var isDark = e.detail && e.detail.isDark;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) {
+          meta = document.createElement('meta');
+          meta.name = 'theme-color';
+          document.head.appendChild(meta);
+        }
+        meta.content = isDark ? '#05050a' : '#fafafa';
+      });
+    });
+  </script>
+  <footer style="text-align:center;padding:1.5rem;font-size:0.75rem;color:var(--text-muted);border-top:1px solid var(--border-subtle);margin-top:2rem">
+    <p>NAdot — a product of <strong>NEURAL AURORA</strong></p>
+    <p style="margin-top:0.25rem">&copy; {% now "Y" %} NEURAL AURORA. All rights reserved.</p>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
