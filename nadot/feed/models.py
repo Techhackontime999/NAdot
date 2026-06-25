@@ -20,13 +20,13 @@ class Post(models.Model):
         return f"{self.user.username}'s post at {self.created_at}"
     
     def total_likes(self):
-        return self.likes.count()
+        return len(self.likes.all())
     
     def total_comments(self):
-        return self.comments.count()
+        return len(self.comments.all())
 
     def total_reposts(self):
-        return self.reposts.count()
+        return len(self.reposts.all())
 
 
 class PostAttachment(models.Model):
@@ -101,13 +101,15 @@ class Comment(models.Model):
         ordering = ['created_at']
     
     def __str__(self):
-        return f"{self.user.username}'s comment on post {self.post.id}"
+        if self.post:
+            return f"{self.user.username}'s comment on post {self.post.id}"
+        return f"{self.user.username}'s comment on repost {self.repost_id}"
     
     def total_likes(self):
-        return self.likes.count()
+        return len(self.likes.all())
     
     def total_replies(self):
-        return self.replies.count()
+        return len(self.replies.all())
 
 
 class Repost(models.Model):
@@ -130,10 +132,10 @@ class Repost(models.Model):
         return f"{self.user.username} reposted {self.original_post.id} ({self.repost_type})"
 
     def total_likes(self):
-        return self.likes.count()
+        return len(self.likes.all())
 
     def total_comments(self):
-        return self.repost_comments.count()
+        return len(self.repost_comments.all())
 
 
 class DocumentPage(models.Model):

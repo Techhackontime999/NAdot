@@ -55,13 +55,18 @@ def feed(request):
     form = PostForm()
     error_message = None
 
-    posts = Post.objects.select_related('user').prefetch_related(
-        'likes', 'comments',
+    posts = Post.objects.select_related(
+        'user__profile'
+    ).prefetch_related(
+        'likes', 'comments', 'reposts',
         Prefetch('attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
     ).order_by('-created_at')
 
-    reposts = Repost.objects.select_related('user', 'original_post__user').prefetch_related(
-        'original_post__likes', 'original_post__comments',
+    reposts = Repost.objects.select_related(
+        'user__profile', 'original_post__user__profile'
+    ).prefetch_related(
+        'likes', 'repost_comments',
+        'original_post__likes', 'original_post__comments', 'original_post__reposts',
         Prefetch('original_post__attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
     ).order_by('-created_at')
 
@@ -226,13 +231,13 @@ def get_post_link(request, post_id):
 @login_required
 def post_detail(request, post_id):
     post = get_object_or_404(
-        Post.objects.select_related('user').prefetch_related(
+        Post.objects.select_related('user__profile').prefetch_related(
             'likes', 'comments',
             Prefetch('attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
         ),
         id=post_id
     )
-    comments = post.comments.select_related('user').all()
+    comments = post.comments.select_related('user__profile').all()
     
     return render(request, 'feed/post_detail.html', {
         'post': post,
@@ -338,11 +343,14 @@ def get_repost_comments(request, repost_id):
 @login_required
 def repost_detail(request, repost_id):
     repost = get_object_or_404(
-        Repost.objects.select_related('user', 'original_post').prefetch_related('original_post__likes'),
+        Repost.objects.select_related('user__profile', 'original_post__user__profile').prefetch_related(
+            'likes', 'repost_comments', 'original_post__likes', 'original_post__comments',
+            Prefetch('original_post__attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
+        ),
         id=repost_id
     )
     post = repost.original_post
-    comments = post.comments.select_related('user').all()
+    comments = post.comments.select_related('user__profile').all()
     return render(request, 'feed/post_detail.html', {
         'post': post,
         'repost': repost,

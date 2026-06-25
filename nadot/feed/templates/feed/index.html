@@ -1201,7 +1201,10 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
       })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) return r.json().then(d => Promise.reject(d.error || 'Delete failed'));
+        return r.json();
+      })
       .then(data => {
         if (data.success) {
           const card = this.closest('.post-card');
@@ -1212,7 +1215,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           showToast(data.error || 'Delete failed', 'error');
         }
-      });
+      })
+      .catch(err => showToast(typeof err === 'string' ? err : 'Delete failed', 'error'));
     });
   });
 
@@ -1221,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', function() {
       const repostId = this.dataset.repostId;
       const card = this.closest('.post-card');
-      const thoughtEl = card?.querySelector('.mb-3.pl-4.border-l-2 p');
+      const thoughtEl = card?.querySelector('.mb-3 p');
       const currentContent = thoughtEl ? thoughtEl.textContent : '';
       document.getElementById('editRepostThoughtId').value = repostId;
       document.getElementById('editRepostThoughtContent').value = currentContent;
@@ -1254,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.success) {
           const card = document.querySelector(`.post-card[data-repost-id="${repostId}"]`);
           if (card) {
-            const thoughtDiv = card.querySelector('.mb-3.pl-4.border-l-2');
+            const thoughtDiv = card.querySelector('.mb-3');
             if (thoughtDiv) {
               thoughtDiv.querySelector('p').textContent = data.content;
             }
