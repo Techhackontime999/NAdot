@@ -6,9 +6,9 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.conf import settings
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from .models import DocumentPage
-from .models import Post, Comment, PostAttachment
+from .models import Post, Comment, PostAttachment, Repost
 from .forms import PostForm, CommentForm
 from core.validators import AttachmentUploadValidator
 from .document_processor import extract_pdf_pages
@@ -54,14 +54,34 @@ def _handle_post_attachments(post, files):
 def feed(request):
     form = PostForm()
     error_message = None
+
     posts = Post.objects.select_related('user').prefetch_related(
         'likes', 'comments',
         Prefetch('attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
     ).order_by('-created_at')
-    paginator = Paginator(posts, 10)
+
+    reposts = Repost.objects.select_related('user', 'original_post__user').prefetch_related(
+        'original_post__likes', 'original_post__comments',
+        Prefetch('original_post__attachments', queryset=PostAttachment.objects.prefetch_related('pages'))
+    ).order_by('-created_at')
+
+    feed_items = []
+    p_iter = iter(posts)
+    r_iter = iter(reposts)
+    p = next(p_iter, None)
+    r = next(r_iter, None)
+    while p is not None or r is not None:
+        if r is None or (p is not None and p.created_at >= r.created_at):
+            feed_items.append({'type': 'post', 'object': p})
+            p = next(p_iter, None)
+        else:
+            feed_items.append({'type': 'repost', 'object': r})
+            r = next(r_iter, None)
+
+    paginator = Paginator(feed_items, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    total_count = posts.count()
+    total_count = len(feed_items)
 
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
@@ -109,13 +129,14 @@ def add_comment(request, post_id):
     if request.method == 'POST':
         post = get_object_or_404(Post, id=post_id)
         content = request.POST.get('content', '').strip()
+        parent_id = request.POST.get('parent_id')
         
         if content:
-            comment = Comment.objects.create(
-                post=post,
-                user=request.user,
-                content=content
-            )
+            kwargs = {'post': post, 'user': request.user, 'content': content}
+            if parent_id:
+                parent = get_object_or_404(Comment, id=parent_id, post=post)
+                kwargs['parent'] = parent
+            comment = Comment.objects.create(**kwargs)
             avatar_url = None
             if comment.user.profile.avatar:
                 avatar_url = comment.user.profile.avatar.url
@@ -127,7 +148,10 @@ def add_comment(request, post_id):
                     'content': comment.content,
                     'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
                     'is_owner': comment.user == request.user,
-                    'avatar_url': avatar_url
+                    'avatar_url': avatar_url,
+                    'parent_id': int(parent_id) if parent_id else None,
+                    'total_likes': 0,
+                    'is_liked': False
                 },
                 'comments_count': post.total_comments()
             })
@@ -139,27 +163,59 @@ def add_comment(request, post_id):
 @login_required
 def get_comments(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    comments = post.comments.select_related('user').all()
+    comments = post.comments.select_related('user').prefetch_related('likes', 'replies__user', 'replies__likes').all()
     
-    comments_data = []
-    for comment in comments:
+    def serialize_comment(c):
         avatar_url = None
-        if comment.user.profile.avatar:
-            avatar_url = comment.user.profile.avatar.url
-        comments_data.append({
-            'id': comment.id,
-            'user': comment.user.username,
-            'content': comment.content,
-            'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
-            'is_owner': comment.user == request.user,
-            'avatar_url': avatar_url
-        })
+        if c.user.profile.avatar:
+            avatar_url = c.user.profile.avatar.url
+        replies_data = []
+        for reply in c.replies.all():
+            reply_avatar = None
+            if reply.user.profile.avatar:
+                reply_avatar = reply.user.profile.avatar.url
+            replies_data.append({
+                'id': reply.id,
+                'user': reply.user.username,
+                'content': reply.content,
+                'created_at': reply.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'is_owner': reply.user == request.user,
+                'avatar_url': reply_avatar,
+                'total_likes': reply.total_likes(),
+                'is_liked': request.user in reply.likes.all()
+            })
+        return {
+            'id': c.id,
+            'user': c.user.username,
+            'content': c.content,
+            'created_at': c.created_at.strftime('%b %d, %Y at %I:%M %p'),
+            'is_owner': c.user == request.user,
+            'avatar_url': avatar_url,
+            'total_likes': c.total_likes(),
+            'is_liked': request.user in c.likes.all(),
+            'replies': replies_data,
+            'total_replies': c.total_replies()
+        }
+    
+    comments_data = [serialize_comment(c) for c in comments if c.parent is None]
     
     return JsonResponse({
         'success': True,
         'comments': comments_data,
         'comments_count': len(comments_data)
     })
+
+@login_required
+def like_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+        is_liked = False
+    else:
+        comment.likes.add(request.user)
+        is_liked = True
+    return JsonResponse({'likes_count': comment.likes.count(), 'is_liked': is_liked})
+
 
 @login_required
 def get_post_link(request, post_id):
@@ -182,6 +238,146 @@ def post_detail(request, post_id):
         'post': post,
         'comments': comments
     })
+
+
+@login_required
+def like_repost(request, repost_id):
+    repost = get_object_or_404(Repost, id=repost_id)
+    if request.user in repost.likes.all():
+        repost.likes.remove(request.user)
+        is_liked = False
+    else:
+        repost.likes.add(request.user)
+        is_liked = True
+    return JsonResponse({'likes_count': repost.likes.count(), 'is_liked': is_liked})
+
+
+@login_required
+def add_repost_comment(request, repost_id):
+    if request.method == 'POST':
+        repost = get_object_or_404(Repost, id=repost_id)
+        content = request.POST.get('content', '').strip()
+        parent_id = request.POST.get('parent_id')
+
+        if content:
+            kwargs = {'repost': repost, 'user': request.user, 'content': content}
+            if parent_id:
+                parent = get_object_or_404(Comment, id=parent_id, repost=repost)
+                kwargs['parent'] = parent
+            comment = Comment.objects.create(**kwargs)
+            avatar_url = None
+            if comment.user.profile.avatar:
+                avatar_url = comment.user.profile.avatar.url
+            return JsonResponse({
+                'success': True,
+                'comment': {
+                    'id': comment.id,
+                    'user': comment.user.username,
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                    'is_owner': comment.user == request.user,
+                    'avatar_url': avatar_url,
+                    'parent_id': int(parent_id) if parent_id else None,
+                    'total_likes': 0,
+                    'is_liked': False
+                },
+                'comments_count': repost.total_comments()
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Comment cannot be empty'}, status=400)
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def get_repost_comments(request, repost_id):
+    repost = get_object_or_404(Repost, id=repost_id)
+    comments = repost.repost_comments.select_related('user').prefetch_related('likes', 'replies__user', 'replies__likes').all()
+
+    def serialize_comment(c):
+        avatar_url = None
+        if c.user.profile.avatar:
+            avatar_url = c.user.profile.avatar.url
+        replies_data = []
+        for reply in c.replies.all():
+            reply_avatar = None
+            if reply.user.profile.avatar:
+                reply_avatar = reply.user.profile.avatar.url
+            replies_data.append({
+                'id': reply.id,
+                'user': reply.user.username,
+                'content': reply.content,
+                'created_at': reply.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'is_owner': reply.user == request.user,
+                'avatar_url': reply_avatar,
+                'total_likes': reply.total_likes(),
+                'is_liked': request.user in reply.likes.all()
+            })
+        return {
+            'id': c.id,
+            'user': c.user.username,
+            'content': c.content,
+            'created_at': c.created_at.strftime('%b %d, %Y at %I:%M %p'),
+            'is_owner': c.user == request.user,
+            'avatar_url': avatar_url,
+            'total_likes': c.total_likes(),
+            'is_liked': request.user in c.likes.all(),
+            'replies': replies_data,
+            'total_replies': c.total_replies()
+        }
+
+    comments_data = [serialize_comment(c) for c in comments if c.parent is None]
+
+    return JsonResponse({
+        'success': True,
+        'comments': comments_data,
+        'comments_count': len(comments_data)
+    })
+
+
+@login_required
+def repost_detail(request, repost_id):
+    repost = get_object_or_404(
+        Repost.objects.select_related('user', 'original_post').prefetch_related('original_post__likes'),
+        id=repost_id
+    )
+    post = repost.original_post
+    comments = post.comments.select_related('user').all()
+    return render(request, 'feed/post_detail.html', {
+        'post': post,
+        'repost': repost,
+        'comments': comments
+    })
+
+
+@login_required
+def repost_post(request, post_id):
+    if request.method == 'POST':
+        post = get_object_or_404(Post, id=post_id)
+        repost_type = request.POST.get('repost_type', 'repost')
+        content = request.POST.get('content', '').strip().lstrip('|')
+
+        if repost_type not in ['repost', 'repost_thought']:
+            return JsonResponse({'success': False, 'error': 'Invalid repost type'}, status=400)
+
+        if repost_type == 'repost_thought' and not content:
+            return JsonResponse({'success': False, 'error': 'Content is required for repost with thought'}, status=400)
+
+        repost = Repost.objects.create(
+            user=request.user,
+            original_post=post,
+            content=content if repost_type == 'repost_thought' else None,
+            repost_type=repost_type
+        )
+
+        return JsonResponse({
+            'success': True,
+            'repost_count': post.total_reposts(),
+            'message': 'Post reposted successfully'
+        })
+
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
 
 @login_required
 def delete_post(request, post_id):
@@ -308,4 +504,32 @@ def update_post(request, post_id):
             }
         })
     
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def delete_repost(request, repost_id):
+    if request.method == 'POST':
+        repost = get_object_or_404(Repost, id=repost_id)
+        if repost.user != request.user:
+            return JsonResponse({'success': False, 'error': 'You do not have permission to delete this repost'}, status=403)
+        repost.delete()
+        return JsonResponse({'success': True, 'message': 'Repost deleted successfully'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def update_repost(request, repost_id):
+    if request.method == 'POST':
+        repost = get_object_or_404(Repost, id=repost_id)
+        if repost.user != request.user:
+            return JsonResponse({'success': False, 'error': 'You do not have permission to edit this repost'}, status=403)
+        if repost.repost_type != 'repost_thought':
+            return JsonResponse({'success': False, 'error': 'Only reposts with thought can be edited'}, status=400)
+        content = request.POST.get('content', '').strip().lstrip('|')
+        if not content:
+            return JsonResponse({'success': False, 'error': 'Content is required'}, status=400)
+        repost.content = content
+        repost.save()
+        return JsonResponse({'success': True, 'message': 'Repost updated successfully', 'content': repost.content})
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)

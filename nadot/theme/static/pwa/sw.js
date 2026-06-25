@@ -1,5 +1,5 @@
-const CACHE = 'nadot-v1';
-const STATIC_CACHE = 'nadot-static-v1';
+const CACHE = 'nadot-v2';
+const STATIC_CACHE = 'nadot-static-v2';
 const OFFLINE_URL = '/offline/';
 
 const PRECACHE_URLS = [
@@ -7,7 +7,6 @@ const PRECACHE_URLS = [
   '/static/messaging/notifications.js',
   '/static/js/animations.js',
   '/static/js/neural-aurora.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
   '/static/css/custom_styles.css',
   '/static/pwa/icons/icon-192x192.png',
   '/static/pwa/icons/icon-512x512.png',
@@ -16,7 +15,9 @@ const PRECACHE_URLS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((cache) => Promise.allSettled(PRECACHE_URLS.map((url) => cache.add(url).catch(() => {}))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -60,7 +61,7 @@ async function navStrategy(request) {
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(CACHE);
-      cache.put(request, response.clone());
+      await cache.put(request, response.clone());
     }
     return response;
   } catch {
@@ -79,7 +80,7 @@ async function cacheFirst(request) {
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, response.clone());
+      await cache.put(request, response.clone());
     }
     return response;
   } catch {
@@ -92,7 +93,7 @@ async function networkFirst(request) {
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(CACHE);
-      cache.put(request, response.clone());
+      await cache.put(request, response.clone());
     }
     return response;
   } catch {

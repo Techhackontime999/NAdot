@@ -25,6 +25,9 @@ class Post(models.Model):
     def total_comments(self):
         return self.comments.count()
 
+    def total_reposts(self):
+        return self.reposts.count()
+
 
 class PostAttachment(models.Model):
     FILE_TYPES = [
@@ -84,17 +87,53 @@ class PostAttachment(models.Model):
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    repost = models.ForeignKey('Repost', on_delete=models.CASCADE, related_name='repost_comments', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField(max_length=500)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_comments', blank=True)
     
     class Meta:
         ordering = ['created_at']
     
     def __str__(self):
         return f"{self.user.username}'s comment on post {self.post.id}"
+    
+    def total_likes(self):
+        return self.likes.count()
+    
+    def total_replies(self):
+        return self.replies.count()
+
+
+class Repost(models.Model):
+    REPOST_TYPES = [
+        ('repost', 'Repost'),
+        ('repost_thought', 'Repost with Thought'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reposts')
+    original_post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reposts')
+    content = models.TextField(blank=True, null=True)
+    repost_type = models.CharField(max_length=20, choices=REPOST_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_reposts', blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} reposted {self.original_post.id} ({self.repost_type})"
+
+    def total_likes(self):
+        return self.likes.count()
+
+    def total_comments(self):
+        return self.repost_comments.count()
 
 
 class DocumentPage(models.Model):

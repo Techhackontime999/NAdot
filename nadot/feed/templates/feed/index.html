@@ -247,40 +247,38 @@
 
     <!-- Posts -->
     <div class="stagger-container">
-      {% for post in page_obj %}
-      <article class="post-card stagger-item scroll-reveal post-card-clickable" data-post-id="{{ post.id }}" data-index="{{ forloop.counter0 }}">
+      {% for item in page_obj %}
+      {% if item.type == 'repost' %}
+      {% with repost=item.object post=item.object.original_post %}
+      <article class="post-card stagger-item scroll-reveal" data-post-id="{{ post.id }}" data-repost-id="{{ repost.id }}" data-index="{{ forloop.counter0 }}">
         <div class="flex items-start gap-3 mb-3">
-          <a href="{% url 'public_profile' post.user.username %}">
-            <div style="width:44px;height:44px;border-radius:14px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--aurora-purple),var(--aurora-teal));color:white;font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center;outline:2px solid var(--bg-card);outline-offset:-1px;">{% if post.user.profile.avatar %}<img src="{{ post.user.profile.avatar.url }}" alt="{{ post.user.username }}" class="w-full h-full object-cover">{% else %}{{ post.user.username|slice:":2"|upper }}{% endif %}</div>
+          <a href="{% url 'public_profile' repost.user.username %}">
+            <div style="width:44px;height:44px;border-radius:14px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--aurora-purple),var(--aurora-teal));color:white;font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center;outline:2px solid var(--bg-card);outline-offset:-1px;">{% if repost.user.profile.avatar %}<img src="{{ repost.user.profile.avatar.url }}" alt="{{ repost.user.username }}" class="w-full h-full object-cover">{% else %}{{ repost.user.username|slice:":2"|upper }}{% endif %}</div>
           </a>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2">
               <div>
-                <a href="{% url 'public_profile' post.user.username %}" class="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors no-underline">
-                  {{ post.user.get_full_name|default:post.user.username }}
+                <a href="{% url 'public_profile' repost.user.username %}" class="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors no-underline">
+                  {{ repost.user.get_full_name|default:repost.user.username }}
                 </a>
-                <p class="text-xs text-[var(--text-muted)]">{{ post.created_at|timesince }} ago</p>
+                <p class="text-xs text-[var(--text-muted)]">reposted {{ repost.created_at|timesince }} ago</p>
               </div>
               <div class="flex items-center gap-2">
-                {% if post.user != request.user %}
-                <button class="follow-btn {% if post.user in request.user.following.all %}following{% else %}not-following{% endif %} text-xs px-3 py-1.5 rounded-xl font-medium transition-all duration-200 active:scale-[0.97]"
-                        data-user-id="{{ post.user.id }}">
-                  <span class="follow-text">{% if post.user in request.user.following.all %}Following{% else %}Follow{% endif %}</span>
-                </button>
-                {% endif %}
-                {% if post.user == request.user %}
+                {% if repost.user == request.user %}
                 <div class="relative post-menu-container">
-                  <button class="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors post-menu-btn" data-post-id="{{ post.id }}" aria-label="Post options">
+                  <button class="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors" data-repost-menu="{{ repost.id }}" aria-label="Repost options">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
                   </button>
-                  <div class="post-menu dropdown-menu hidden" data-post-id="{{ post.id }}" style="min-width:150px">
-                    <button class="edit-post-btn dropdown-item" data-post-id="{{ post.id }}">
+                  <div class="post-menu dropdown-menu hidden" data-repost-menu="{{ repost.id }}" style="min-width:150px">
+                    {% if repost.repost_type == 'repost_thought' %}
+                    <button class="edit-repost-btn dropdown-item" data-repost-id="{{ repost.id }}">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                      Edit
+                      Edit thought
                     </button>
-                    <button class="delete-post-btn dropdown-item danger" data-post-id="{{ post.id }}">
+                    {% endif %}
+                    <button class="delete-repost-btn dropdown-item danger" data-repost-id="{{ repost.id }}">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                      Delete
+                      Delete repost
                     </button>
                   </div>
                 </div>
@@ -289,281 +287,46 @@
             </div>
           </div>
         </div>
-
-        <div class="post-content mb-3">{{ post.content|safe }}</div>
-
-        {% with attachments=post.attachments.all %}
-        {% if post.image or attachments %}
-        <div class="post-media mb-3">
-          {% if post.image and not attachments %}
-          <div class="media-item media-item-full cursor-pointer" onclick="openLightbox(this.querySelector('img').src)">
-            <img src="{{ post.image.url }}" alt="Post image" class="w-full h-auto" loading="lazy">
-          </div>
-          {% elif attachments %}
-            {% with images=attachments %}
-            {% with img_count=images|length %}
-            {% if img_count == 1 %}
-              {% with att=images.0 %}
-                {% if att.is_image %}
-                <div class="media-item media-item-full cursor-pointer" onclick="openLightbox('{{ att.file.url }}')">
-                  <img src="{{ att.file.url }}" alt="Post attachment" class="w-full h-auto" loading="lazy">
-                </div>
-                {% elif att.is_video %}
-                <div class="media-item media-item-full">
-                  <video controls class="w-full h-auto rounded-[var(--radius-md)]" preload="metadata">
-                    <source src="{{ att.file.url }}" type="video/{{ att.file_extension }}">
-                  </video>
-                </div>
-                {% elif att.is_document %}
-                {% with pages=att.pages.all %}
-                {% if pages|length > 0 %}
-                <div class="doc-viewer" data-attachment-id="{{ att.id }}">
-                  <div class="doc-viewer-header">
-                    <div class="doc-viewer-title">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                      <span>{{ att.filename }}</span>
-                    </div>
-                    <span class="doc-viewer-pages">{{ pages|length }} page{{ pages|length|pluralize }}</span>
-                    <button class="doc-viewer-fullscreen-btn" onclick="toggleDocFullscreen(this.closest('.doc-viewer'))" title="Full screen" aria-label="Full screen">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                    </button>
-                    <a href="{{ att.file.url }}" target="_blank" class="doc-viewer-download" title="Download" download>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </a>
-                  </div>
-                  <div class="doc-viewer-carousel">
-                    <div class="doc-viewer-track">
-                      {% for page in pages %}
-                      <div class="doc-viewer-slide {% if forloop.first %}active{% endif %}" data-page="{{ page.page_number }}">
-                        <img src="{{ page.image.url }}" alt="Page {{ page.page_number }}" class="doc-viewer-page-img" loading="lazy" style="aspect-ratio:{{ page.width }}/{{ page.height }}">
-                      </div>
-                      {% endfor %}
-                    </div>
-                    <button class="doc-viewer-nav doc-viewer-prev" aria-label="Previous page">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <button class="doc-viewer-nav doc-viewer-next" aria-label="Next page">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                    <div class="doc-viewer-counter">Page <span class="doc-viewer-current">1</span> of {{ pages|length }}</div>
-                  </div>
-                </div>
-                {% else %}
-                <a href="{{ att.file.url }}" target="_blank" class="file-card file-card-detailed block no-underline" download>
-                  <div class="file-card-preview">
-                    <div class="file-card-icon-lg">
-                      {% with ext=att.file_extension %}
-                      {% if ext == 'pdf' %}
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                      <span class="file-card-badge" style="background:#ef4444">PDF</span>
-                      {% elif ext == 'docx' or ext == 'doc' %}
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                      <span class="file-card-badge" style="background:#3b82f6">DOC</span>
-                      {% elif ext == 'pptx' or ext == 'ppt' %}
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                      <span class="file-card-badge" style="background:#f97316">PPT</span>
-                      {% else %}
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                      <span class="file-card-badge" style="background:var(--text-muted)">FILE</span>
-                      {% endif %}
-                      {% endwith %}
-                    </div>
-                    <div class="file-card-meta">
-                      <span class="file-card-name">{{ att.filename }}</span>
-                      <span class="file-card-size">{{ att.file_size }}</span>
-                    </div>
-                  </div>
-                  <div class="file-card-footer">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    <span>Download</span>
-                  </div>
-                </a>
-                {% endif %}
-                {% endwith %}
-                {% elif att.is_audio %}
-                <div class="audio-player-card">
-                  <div class="audio-player-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--aurora-teal)" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  </div>
-                  <div class="audio-player-info">
-                    <span class="audio-player-name">{{ att.filename }}</span>
-                    <span class="audio-player-size">{{ att.file_size }}</span>
-                  </div>
-                  <audio controls preload="none" class="audio-player-controls">
-                    <source src="{{ att.file.url }}">
-                  </audio>
-                </div>
-                {% endif %}
-              {% endwith %}
-            {% elif img_count == 2 %}
-              <div class="media-grid-2">
-              {% for att in images %}
-                {% if att.is_image %}
-                <div class="media-item cursor-pointer" onclick="openLightbox('{{ att.file.url }}')">
-                  <img src="{{ att.file.url }}" alt="Post attachment" class="w-full h-full object-cover" loading="lazy">
-                </div>
-                {% elif att.is_video %}
-                <div class="media-item">
-                  <video controls class="w-full h-full object-cover" preload="metadata">
-                    <source src="{{ att.file.url }}" type="video/{{ att.file_extension }}">
-                  </video>
-                </div>
-                {% elif att.is_document %}
-                {% with pages=att.pages.all %}
-                <a href="#" class="file-card block no-underline" {% if pages|length > 0 %}onclick="openDocViewer('{{ att.filename|escapejs }}','{{ att.file.url }}',[{% for p in pages %}'{{ p.image.url }}'{% if not forloop.last %},{% endif %}{% endfor %}])"{% else %}href="{{ att.file.url }}" target="_blank" download{% endif %}>
-                  <div class="file-card-icon">
-                    {% with ext=att.file_extension %}
-                    {% if ext == 'pdf' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'docx' or ext == 'doc' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'pptx' or ext == 'ppt' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% else %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% endif %}
-                    {% endwith %}
-                  </div>
-                  <div class="file-card-info">
-                    <span class="file-card-name">{{ att.filename }}</span>
-                    <span class="file-card-size">{{ att.file_size }}</span>
-                  </div>
-                </a>
-                {% endwith %}
-                {% elif att.is_audio %}
-                <div class="audio-player-card audio-player-card-sm">
-                  <div class="audio-player-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--aurora-teal)" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  </div>
-                  <audio controls preload="none" class="audio-player-controls audio-player-controls-sm">
-                    <source src="{{ att.file.url }}">
-                  </audio>
-                </div>
-                {% endif %}
-              {% endfor %}
-              </div>
-            {% elif img_count == 3 %}
-              <div class="media-grid-3">
-              {% for att in images %}
-                {% if att.is_image %}
-                <div class="media-item {% if forloop.first %}media-item-span-2{% endif %} cursor-pointer" onclick="openLightbox('{{ att.file.url }}')">
-                  <img src="{{ att.file.url }}" alt="Post attachment" class="w-full h-full object-cover" loading="lazy">
-                </div>
-                {% elif att.is_video %}
-                <div class="media-item {% if forloop.first %}media-item-span-2{% endif %}">
-                  <video controls class="w-full h-full object-cover" preload="metadata">
-                    <source src="{{ att.file.url }}" type="video/{{ att.file_extension }}">
-                  </video>
-                </div>
-                {% elif att.is_document %}
-                {% with pages=att.pages.all %}
-                <a href="#" class="file-card block no-underline {% if forloop.first %}media-item-span-2{% endif %}" {% if pages|length > 0 %}onclick="openDocViewer('{{ att.filename|escapejs }}','{{ att.file.url }}',[{% for p in pages %}'{{ p.image.url }}'{% if not forloop.last %},{% endif %}{% endfor %}])"{% else %}href="{{ att.file.url }}" target="_blank" download{% endif %}>
-                  <div class="file-card-icon">
-                    {% with ext=att.file_extension %}
-                    {% if ext == 'pdf' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'docx' or ext == 'doc' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'pptx' or ext == 'ppt' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% else %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% endif %}
-                    {% endwith %}
-                  </div>
-                  <div class="file-card-info"><span class="file-card-name">{{ att.filename }}</span><span class="file-card-size">{{ att.file_size }}</span></div>
-                </a>
-                {% endwith %}
-                {% elif att.is_audio %}
-                <div class="audio-player-card audio-player-card-sm">
-                  <div class="audio-player-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--aurora-teal)" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  </div>
-                  <audio controls preload="none" class="audio-player-controls audio-player-controls-sm">
-                    <source src="{{ att.file.url }}">
-                  </audio>
-                </div>
-                {% endif %}
-              {% endfor %}
-              </div>
-            {% else %}
-              <div class="media-grid-4">
-              {% for att in images %}
-                {% if att.is_image %}
-                <div class="media-item cursor-pointer" onclick="openLightbox('{{ att.file.url }}')">
-                  <img src="{{ att.file.url }}" alt="Post attachment" class="w-full h-full object-cover" loading="lazy">
-                </div>
-                {% elif att.is_video %}
-                <div class="media-item">
-                  <video controls class="w-full h-full object-cover" preload="metadata">
-                    <source src="{{ att.file.url }}" type="video/{{ att.file_extension }}">
-                  </video>
-                </div>
-                {% elif att.is_document %}
-                {% with pages=att.pages.all %}
-                <a href="#" class="file-card block no-underline" {% if pages|length > 0 %}onclick="openDocViewer('{{ att.filename|escapejs }}','{{ att.file.url }}',[{% for p in pages %}'{{ p.image.url }}'{% if not forloop.last %},{% endif %}{% endfor %}])"{% else %}href="{{ att.file.url }}" target="_blank" download{% endif %}>
-                  <div class="file-card-icon">
-                    {% with ext=att.file_extension %}
-                    {% if ext == 'pdf' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'docx' or ext == 'doc' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% elif ext == 'pptx' or ext == 'ppt' %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% else %}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    {% endif %}
-                    {% endwith %}
-                  </div>
-                  <div class="file-card-info">
-                    <span class="file-card-name">{{ att.filename }}</span>
-                    <span class="file-card-size">{{ att.file_size }}</span>
-                  </div>
-                </a>
-                {% endwith %}
-                {% elif att.is_audio %}
-                <div class="audio-player-card audio-player-card-sm">
-                  <div class="audio-player-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--aurora-teal)" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                  </div>
-                  <audio controls preload="none" class="audio-player-controls audio-player-controls-sm">
-                    <source src="{{ att.file.url }}">
-                  </audio>
-                </div>
-                {% endif %}
-              {% endfor %}
-              </div>
-            {% endif %}
-            {% endwith %}
-            {% endwith %}
-          {% endif %}
+        {% if repost.repost_type == 'repost_thought' and repost.content %}
+        <div class="mb-3">
+          <p class="text-sm text-[var(--text-primary)]">{{ repost.content }}</p>
         </div>
         {% endif %}
+        <div class="original-post-inner" style="background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px;opacity:0.7">
+        {% with muted_actions=True %}
+        {% include "components/post_card_content.html" %}
         {% endwith %}
-
-        <div class="flex items-center gap-1 pt-3 border-t border-[var(--border-subtle)] responsive-wrap">
-          <button class="like-btn {% if request.user in post.likes.all %}liked{% endif %}" data-post-id="{{ post.id }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if request.user in post.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            <span class="like-count">{{ post.total_likes }}</span>
+        </div>
+        <!-- Repost action bar -->
+        <div class="flex items-center gap-1 pt-3 mt-3 border-t border-[var(--border-subtle)] responsive-wrap">
+          <button class="like-btn {% if request.user in repost.likes.all %}liked{% endif %}" data-repost-id="{{ repost.id }}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="{% if request.user in repost.likes.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span class="like-count text-xs">{{ repost.total_likes }}</span>
           </button>
-          <button class="comment-btn btn-ghost text-sm" data-post-id="{{ post.id }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <button class="comment-btn btn-ghost text-xs" data-repost-id="{{ repost.id }}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Comment</span>
-            <span class="comment-count text-xs ml-1">{{ post.total_comments }}</span>
+            <span class="comment-count text-xs ml-1">{{ repost.total_comments }}</span>
           </button>
-          <button class="share-btn btn-ghost text-sm ml-auto" data-post-id="{{ post.id }}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          <div class="relative repost-container">
+            <button class="repost-btn btn-ghost text-xs" data-post-id="{{ post.id }}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              <span class="repost-text">Repost</span>
+              <span class="repost-count text-xs ml-1">{{ post.total_reposts }}</span>
+            </button>
+          </div>
+          <button class="share-btn btn-ghost text-xs ml-auto" data-post-id="{{ post.id }}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Share</span>
           </button>
         </div>
-
-        <!-- Comments Section -->
-        <div class="comments-section hidden pt-3 mt-3 border-t border-[var(--border-subtle)]" data-post-id="{{ post.id }}">
+        <!-- Repost Comments Section -->
+        <div class="comments-section hidden pt-3 mt-3 border-t border-[var(--border-subtle)]" data-repost-id="{{ repost.id }}">
           <div class="comments-list space-y-3 mb-3 max-h-72 overflow-y-auto"></div>
           <div class="flex items-start gap-3">
             <div style="width:32px;height:32px;border-radius:10px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--aurora-purple),var(--aurora-teal));color:white;font-weight:700;font-size:0.625rem;display:flex;align-items:center;justify-content:center;">{% if request.user.profile.avatar %}<img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.username }}" class="w-full h-full object-cover">{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}</div>
             <div class="flex-1">
-              <form class="comment-form" data-post-id="{{ post.id }}">
+              <form class="comment-form" data-repost-id="{{ repost.id }}">
                 {% csrf_token %}
                 <textarea name="content" class="input-premium text-sm" rows="2" placeholder="Write a comment..." maxlength="500" required style="min-height:60px;resize:none"></textarea>
                 <div class="flex justify-end mt-2">
@@ -574,6 +337,14 @@
           </div>
         </div>
       </article>
+      {% endwith %}
+      {% else %}
+      {% with post=item.object %}
+      <article class="post-card stagger-item scroll-reveal post-card-clickable" data-post-id="{{ post.id }}" data-index="{{ forloop.counter0 }}">
+        {% include "components/post_card_content.html" %}
+      </article>
+      {% endwith %}
+      {% endif %}
       {% empty %}
       <div class="double-bezel tilt-card scroll-reveal">
         <div class="bezel-outer">
@@ -718,6 +489,57 @@
   </div>
 </div>
 
+<!-- Repost with Thought Modal -->
+<div id="repostThoughtModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header responsive-px">
+      <h3 class="text-lg font-bold text-[var(--text-primary)]">Repost with thought</h3>
+      <button id="closeRepostThoughtModal" class="btn-ghost p-1.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="repostThoughtForm">
+        {% csrf_token %}
+        <input type="hidden" id="repostThoughtPostId" name="post_id">
+        <div class="form-group">
+          <label for="repostThoughtContent">Add your thoughts</label>
+          <textarea id="repostThoughtContent" name="content" class="input-premium" rows="4" placeholder="What are your thoughts about this?" required style="min-height:100px"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="cancelRepostThought" class="btn-secondary text-sm">Cancel</button>
+      <button type="submit" form="repostThoughtForm" class="btn-primary text-sm">Repost</button>
+  </div>
+</div>
+
+<!-- Edit Repost Thought Modal -->
+<div id="editRepostThoughtModal" class="modal-overlay hidden">
+  <div class="modal-content">
+    <div class="modal-header responsive-px">
+      <h3 class="text-lg font-bold text-[var(--text-primary)]">Edit thought</h3>
+      <button id="closeEditRepostThought" class="btn-ghost p-1.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="editRepostThoughtForm">
+        {% csrf_token %}
+        <input type="hidden" id="editRepostThoughtId" name="repost_id">
+        <div class="form-group">
+          <label for="editRepostThoughtContent">Edit your thoughts</label>
+          <textarea id="editRepostThoughtContent" name="content" class="input-premium" rows="4" required style="min-height:100px"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="cancelEditRepostThought" class="btn-secondary text-sm">Cancel</button>
+      <button type="submit" form="editRepostThoughtForm" class="btn-primary text-sm">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const imageInput = document.getElementById('composer-image-input');
@@ -835,9 +657,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const postId = this.dataset.postId;
+      const repostId = this.dataset.repostId;
       const countSpan = this.querySelector('.like-count');
       const svg = this.querySelector('svg');
-      fetch(`/like/${postId}/`, {
+      const url = repostId ? `/repost/${repostId}/like/` : `/like/${postId}/`;
+      fetch(url, {
         method: 'POST',
         headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
       })
@@ -1037,71 +861,192 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.comment-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const postId = this.dataset.postId;
-      const section = document.querySelector(`.comments-section[data-post-id="${postId}"]`);
+      const repostId = this.dataset.repostId;
+      const key = repostId ? `repost-id="${repostId}"` : `post-id="${postId}"`;
+      const section = document.querySelector(`.comments-section[data-${key}]`);
+      if (!section) return;
       if (section.classList.contains('hidden')) {
-        loadComments(postId);
+        loadComments(postId, repostId);
         section.classList.remove('hidden');
       } else { section.classList.add('hidden'); }
     });
   });
 
-  function loadComments(postId) {
-    fetch(`/post/${postId}/comments/`)
+  function loadComments(postId, repostId) {
+    const url = repostId ? `/repost/${repostId}/comments/` : `/post/${postId}/comments/`;
+    const key = repostId ? `repost-id="${repostId}"` : `post-id="${postId}"`;
+    fetch(url)
       .then(r => r.json())
       .then(data => {
         if (!data.success) return;
-        const list = document.querySelector(`.comments-section[data-post-id="${postId}"] .comments-list`);
+        const list = document.querySelector(`.comments-section[data-${key}] .comments-list`);
         list.innerHTML = '';
         if (!data.comments.length) {
           list.innerHTML = '<p class="text-sm text-[var(--text-muted)] text-center py-4">No comments yet.</p>';
         } else {
-          data.comments.forEach(c => list.appendChild(createCommentEl(c)));
+          data.comments.forEach(c => list.appendChild(createCommentEl(c, postId, repostId)));
         }
       });
   }
 
-  function createCommentEl(comment) {
+  function createCommentEl(comment, postId, repostId, isReply) {
     const div = document.createElement('div');
-    div.className = 'flex items-start gap-3';
+    div.className = isReply ? 'flex items-start gap-2 ml-8 mt-2' : 'flex items-start gap-3';
     const color = comment.user === '{{ request.user.username }}' ? 'var(--aurora-purple),var(--aurora-teal)' : 'var(--aurora-cyan),var(--aurora-teal)';
     const avatarHtml = comment.avatar_url
       ? `<img src="${comment.avatar_url}" alt="${comment.user}" class="w-full h-full object-cover">`
       : `${comment.user.substring(0,2).toUpperCase()}`;
+    const size = isReply ? '28px;border-radius:8px;font-size:0.5rem' : '32px;border-radius:10px;font-size:0.625rem';
+    const likeFill = comment.is_liked ? 'currentColor' : 'none';
+    const likeColor = comment.is_liked ? 'var(--aurora-pink)' : 'currentColor';
+    const idAttr = repostId ? `data-repost-id="${repostId}"` : `data-post-id="${postId}"`;
     div.innerHTML = `
-      <div style="width:32px;height:32px;border-radius:10px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,${color});color:white;font-weight:700;font-size:0.625rem;display:flex;align-items:center;justify-content:center;">${avatarHtml}</div>
+      <div style="width:${size};flex-shrink:0;background:linear-gradient(135deg,${color});color:white;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;">${avatarHtml}</div>
       <div class="flex-1 bg-[var(--bg-secondary)] rounded-xl p-3">
         <div class="flex items-center justify-between gap-2 mb-1">
           <span class="text-sm font-semibold text-[var(--text-primary)]">${comment.user}</span>
           <span class="text-xs text-[var(--text-muted)]">${comment.created_at}</span>
         </div>
-        <p class="text-sm text-[var(--text-secondary)]">${comment.content}</p>
+        <p class="text-sm text-[var(--text-secondary)] mb-2">${comment.content}</p>
+        <div class="flex items-center gap-3 text-xs">
+          <button class="comment-like-btn flex items-center gap-1 text-[var(--text-muted)] hover:text-[var(--aurora-pink)] transition-colors" data-comment-id="${comment.id}" ${idAttr}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="${likeFill}" stroke="${likeColor}" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span class="comment-like-count">${comment.total_likes}</span>
+          </button>
+          <button class="comment-reply-btn flex items-center gap-1 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors" data-comment-id="${comment.id}" ${idAttr}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="14 9 17 12 14 15"/><path d="M5 12v-2a4 4 0 0 1 4-4h11"/></svg>
+            <span>Reply</span>
+          </button>
+        </div>
+        ${comment.replies && comment.replies.length ? '<div class="replies-container mt-2 space-y-2"></div>' : ''}
       </div>`;
+    if (comment.replies && comment.replies.length) {
+      const repliesContainer = div.querySelector('.replies-container');
+      comment.replies.forEach(r => repliesContainer.appendChild(createCommentEl(r, postId, repostId, true)));
+    }
     return div;
   }
+
+  document.addEventListener('click', function(e) {
+    const likeBtn = e.target.closest('.comment-like-btn');
+    if (likeBtn) {
+      e.stopPropagation();
+      const commentId = likeBtn.dataset.commentId;
+      fetch(`/comment/${commentId}/like/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+      })
+      .then(r => r.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.comment-like-count');
+        const svg = likeBtn.querySelector('svg');
+        countSpan.textContent = data.likes_count;
+        if (data.is_liked) {
+          svg.setAttribute('fill', 'currentColor');
+          svg.setAttribute('stroke', 'var(--aurora-pink)');
+        } else {
+          svg.setAttribute('fill', 'none');
+          svg.setAttribute('stroke', 'currentColor');
+        }
+      });
+    }
+
+      const replyBtn = e.target.closest('.comment-reply-btn');
+    if (replyBtn) {
+      e.stopPropagation();
+      const commentId = replyBtn.dataset.commentId;
+      const postId = replyBtn.dataset.postId;
+      const repostId = replyBtn.dataset.repostId;
+      const parentDiv = replyBtn.closest('.flex-1');
+      let replyForm = parentDiv.querySelector('.reply-form');
+      if (replyForm) {
+        replyForm.remove();
+        return;
+      }
+      replyForm = document.createElement('div');
+      replyForm.className = 'reply-form mt-2';
+      replyForm.innerHTML = `
+        <div class="flex items-start gap-2">
+          <div class="flex-1">
+            <textarea class="input-premium text-xs" rows="2" placeholder="Write a reply..." maxlength="500" style="min-height:40px;resize:none"></textarea>
+            <div class="flex justify-end gap-2 mt-1">
+              <button class="cancel-reply-btn text-xs text-[var(--text-muted)] px-2 py-1 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">Cancel</button>
+              <button class="submit-reply-btn btn-primary text-xs px-3 py-1">Reply</button>
+            </div>
+          </div>
+        </div>`;
+      parentDiv.appendChild(replyForm);
+
+      replyForm.querySelector('.cancel-reply-btn').addEventListener('click', function() { replyForm.remove(); });
+      replyForm.querySelector('.submit-reply-btn').addEventListener('click', function() {
+        const content = replyForm.querySelector('textarea').value.trim();
+        if (!content) return;
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('parent_id', commentId);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        const endpoint = repostId ? `/repost/${repostId}/comment/` : `/post/${postId}/comment/`;
+        fetch(endpoint, { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              const repliesContainer = parentDiv.querySelector('.replies-container');
+              const newReply = createCommentEl(data.comment, postId, repostId, true);
+              if (repliesContainer) {
+                repliesContainer.appendChild(newReply);
+              } else {
+                const rc = document.createElement('div');
+                rc.className = 'replies-container mt-2 space-y-2';
+                rc.appendChild(newReply);
+                parentDiv.appendChild(rc);
+              }
+              replyForm.remove();
+            }
+          });
+      });
+    }
+  });
 
   document.querySelectorAll('.comment-form').forEach(form => {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const postId = this.dataset.postId;
+      const repostId = this.dataset.repostId;
       const textarea = this.querySelector('textarea');
       const content = textarea.value.trim();
       if (!content) return;
       const formData = new FormData();
       formData.append('content', content);
       formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-      fetch(`/post/${postId}/comment/`, { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            const list = document.querySelector(`.comments-section[data-post-id="${postId}"] .comments-list`);
-            const empty = list.querySelector('p');
-            if (empty) empty.remove();
-            list.appendChild(createCommentEl(data.comment));
-            const count = document.querySelector(`.comment-btn[data-post-id="${postId}"] .comment-count`);
-            if (count) count.textContent = data.comments_count;
-            textarea.value = '';
-          }
-        });
+      if (repostId) {
+        fetch(`/repost/${repostId}/comment/`, { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              const list = document.querySelector(`.comments-section[data-repost-id="${repostId}"] .comments-list`);
+              const empty = list.querySelector('p');
+              if (empty) empty.remove();
+              list.prepend(createCommentEl(data.comment, null, repostId));
+              const count = document.querySelector(`.comment-btn[data-repost-id="${repostId}"] .comment-count`);
+              if (count) count.textContent = data.comments_count;
+              textarea.value = '';
+            }
+          });
+      } else {
+        fetch(`/post/${postId}/comment/`, { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              const list = document.querySelector(`.comments-section[data-post-id="${postId}"] .comments-list`);
+              const empty = list.querySelector('p');
+              if (empty) empty.remove();
+              list.prepend(createCommentEl(data.comment, postId));
+              const count = document.querySelector(`.comment-btn[data-post-id="${postId}"] .comment-count`);
+              if (count) count.textContent = data.comments_count;
+              textarea.value = '';
+            }
+          });
+      }
     });
   });
 
@@ -1121,6 +1066,205 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
     });
+  });
+
+  // --- Repost (delegation) ---
+  // Create a single floating dropdown for all reposts
+  const floatingDropdown = document.createElement('div');
+  floatingDropdown.className = 'repost-dropdown dropdown-menu hidden';
+  floatingDropdown.innerHTML = `
+    <button class="dropdown-item" data-repost-action="repost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      Repost
+    </button>
+    <button class="dropdown-item" data-repost-action="repost_thought">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Repost with thought
+    </button>`;
+  document.body.appendChild(floatingDropdown);
+
+  document.addEventListener('click', function(e) {
+    const repostBtn = e.target.closest('.repost-btn');
+    if (repostBtn) {
+      e.stopPropagation();
+      const postId = repostBtn.dataset.postId;
+      if (!floatingDropdown.classList.contains('hidden') && floatingDropdown.dataset.postId === postId) {
+        floatingDropdown.classList.add('hidden');
+        return;
+      }
+      const rect = repostBtn.getBoundingClientRect();
+      floatingDropdown.dataset.postId = postId;
+      floatingDropdown.querySelectorAll('[data-repost-action]').forEach(el => el.dataset.postId = postId);
+      floatingDropdown.style.position = 'fixed';
+      floatingDropdown.style.left = Math.min(rect.right - 200, window.innerWidth - 220) + 'px';
+      floatingDropdown.style.top = (rect.bottom + 6) + 'px';
+      floatingDropdown.style.right = 'auto';
+      floatingDropdown.style.zIndex = '9999';
+      floatingDropdown.classList.remove('hidden');
+      return;
+    }
+
+    const dropdownBtn = e.target.closest('[data-repost-action]');
+    if (dropdownBtn) {
+      e.stopPropagation();
+      const postId = dropdownBtn.dataset.postId;
+      const action = dropdownBtn.dataset.repostAction;
+      floatingDropdown.classList.add('hidden');
+      if (action === 'repost_thought') {
+        document.getElementById('repostThoughtPostId').value = postId;
+        document.getElementById('repostThoughtContent').value = '';
+        document.getElementById('repostThoughtModal').classList.remove('hidden');
+        requestAnimationFrame(() => document.getElementById('repostThoughtContent').focus());
+        return;
+      }
+      fetch(`/post/${postId}/repost/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `repost_type=${action}`
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const card = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+          if (card) {
+            const repostBtn = card.querySelector('.repost-btn');
+            repostBtn.querySelector('.repost-text').textContent = 'Reposted';
+            repostBtn.querySelector('.repost-count').textContent = data.repost_count;
+            repostBtn.classList.add('text-[var(--accent)]');
+          }
+          showToast('Post reposted!', 'success');
+        } else {
+          showToast(data.error || 'Repost failed', 'error');
+        }
+      })
+      .catch(err => showToast('Network error: ' + err.message, 'error'));
+      return;
+    }
+
+    if (!e.target.closest('.repost-dropdown')) {
+      floatingDropdown.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('closeRepostThoughtModal')?.addEventListener('click', function() {
+    document.getElementById('repostThoughtModal').classList.add('hidden');
+  });
+  document.getElementById('cancelRepostThought')?.addEventListener('click', function() {
+    document.getElementById('repostThoughtModal').classList.add('hidden');
+  });
+  document.getElementById('repostThoughtModal')?.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('hidden');
+  });
+
+  document.getElementById('repostThoughtForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const postId = document.getElementById('repostThoughtPostId').value;
+    const content = document.getElementById('repostThoughtContent').value.trim();
+    if (!content) return;
+    const formData = new FormData();
+    formData.append('repost_type', 'repost_thought');
+    formData.append('content', content);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch(`/post/${postId}/repost/`, { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const card = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+          if (card) {
+            const repostBtn = card.querySelector('.repost-btn');
+            repostBtn.querySelector('.repost-text').textContent = 'Reposted';
+            repostBtn.querySelector('.repost-count').textContent = data.repost_count;
+            repostBtn.classList.add('text-[var(--accent)]');
+          }
+          document.getElementById('repostThoughtModal').classList.add('hidden');
+          showToast('Post reposted with your thoughts!', 'success');
+        }
+      });
+  });
+
+  // --- Repost menu (three-dot) toggle ---
+  document.querySelectorAll('[data-repost-menu]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const repostId = this.dataset.repostMenu;
+      document.querySelectorAll('.post-menu').forEach(m => m.classList.add('hidden'));
+      document.querySelector(`.post-menu[data-repost-menu="${repostId}"]`).classList.toggle('hidden');
+    });
+  });
+
+  // --- Delete repost ---
+  document.querySelectorAll('.delete-repost-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (!confirm('Delete this repost? This cannot be undone.')) return;
+      const repostId = this.dataset.repostId;
+      fetch(`/repost/${repostId}/delete/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const card = this.closest('.post-card');
+          card.style.transition = 'all 0.3s ease';
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.95)';
+          setTimeout(() => card.remove(), 300);
+        } else {
+          showToast(data.error || 'Delete failed', 'error');
+        }
+      });
+    });
+  });
+
+  // --- Edit repost thought ---
+  document.querySelectorAll('.edit-repost-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const repostId = this.dataset.repostId;
+      const card = this.closest('.post-card');
+      const thoughtEl = card?.querySelector('.mb-3.pl-4.border-l-2 p');
+      const currentContent = thoughtEl ? thoughtEl.textContent : '';
+      document.getElementById('editRepostThoughtId').value = repostId;
+      document.getElementById('editRepostThoughtContent').value = currentContent;
+      document.getElementById('editRepostThoughtModal').classList.remove('hidden');
+      requestAnimationFrame(() => document.getElementById('editRepostThoughtContent').focus());
+    });
+  });
+
+  document.getElementById('closeEditRepostThought')?.addEventListener('click', function() {
+    document.getElementById('editRepostThoughtModal').classList.add('hidden');
+  });
+  document.getElementById('cancelEditRepostThought')?.addEventListener('click', function() {
+    document.getElementById('editRepostThoughtModal').classList.add('hidden');
+  });
+  document.getElementById('editRepostThoughtModal')?.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('hidden');
+  });
+
+  document.getElementById('editRepostThoughtForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const repostId = document.getElementById('editRepostThoughtId').value;
+    const content = document.getElementById('editRepostThoughtContent').value.trim();
+    if (!content) return;
+    const formData = new FormData();
+    formData.append('content', content);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch(`/repost/${repostId}/update/`, { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const card = document.querySelector(`.post-card[data-repost-id="${repostId}"]`);
+          if (card) {
+            const thoughtDiv = card.querySelector('.mb-3.pl-4.border-l-2');
+            if (thoughtDiv) {
+              thoughtDiv.querySelector('p').textContent = data.content;
+            }
+          }
+          document.getElementById('editRepostThoughtModal').classList.add('hidden');
+          showToast('Thought updated!', 'success');
+        } else {
+          showToast(data.error || 'Update failed', 'error');
+        }
+      });
   });
 
   // --- Composer upload overlay ---
@@ -1330,13 +1474,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 400);
   }
 
+  /* Repost card click -> repost detail; embedded original -> original post detail */
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.post-card[data-repost-id]');
+    if (!card) return;
+    var tag = e.target.tagName;
+    if (tag === 'A' || tag === 'BUTTON' || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'VIDEO' || tag === 'SELECT' || tag === 'LABEL') return;
+    if (e.target.closest('.post-menu') || e.target.closest('.follow-btn') || e.target.closest('.like-btn') || e.target.closest('.comment-btn') || e.target.closest('.comment-like-btn') || e.target.closest('.comment-reply-btn') || e.target.closest('.submit-reply-btn') || e.target.closest('.cancel-reply-btn') || e.target.closest('.repost-btn') || e.target.closest('.repost-dropdown') || e.target.closest('.share-btn') || e.target.closest('.comment-form') || e.target.closest('.doc-viewer-nav') || e.target.closest('.doc-viewer-fullscreen-btn') || e.target.closest('.doc-viewer-download') || e.target.closest('a')) return;
+    if (e.target.closest('.original-post-inner')) {
+      window.location.href = '/post/' + card.dataset.postId + '/';
+      return;
+    }
+    window.location.href = '/repost/' + card.dataset.repostId + '/';
+  });
+
   /* Post card click -> detail page */
   document.addEventListener('click', function(e) {
     var card = e.target.closest('.post-card-clickable');
     if (!card) return;
     var tag = e.target.tagName;
     if (tag === 'A' || tag === 'BUTTON' || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'VIDEO' || tag === 'SELECT' || tag === 'LABEL') return;
-    if (e.target.closest('.post-menu') || e.target.closest('.follow-btn') || e.target.closest('.like-btn') || e.target.closest('.comment-btn') || e.target.closest('.share-btn') || e.target.closest('.comment-form') || e.target.closest('.doc-viewer-nav') || e.target.closest('.doc-viewer-fullscreen-btn') || e.target.closest('.doc-viewer-download') || e.target.closest('a')) return;
+    if (e.target.closest('.post-menu') || e.target.closest('.follow-btn') || e.target.closest('.like-btn') || e.target.closest('.comment-btn') || e.target.closest('.comment-like-btn') || e.target.closest('.comment-reply-btn') || e.target.closest('.submit-reply-btn') || e.target.closest('.cancel-reply-btn') || e.target.closest('.repost-btn') || e.target.closest('.repost-dropdown') || e.target.closest('.share-btn') || e.target.closest('.comment-form') || e.target.closest('.doc-viewer-nav') || e.target.closest('.doc-viewer-fullscreen-btn') || e.target.closest('.doc-viewer-download') || e.target.closest('a')) return;
     window.location.href = '/post/' + card.dataset.postId + '/';
   });
 });

@@ -294,9 +294,8 @@ class SessionSecurityMiddleware(MiddlewareMixin):
         session_ua = request.session.get('login_user_agent')
         
         if session_ua and session_ua != current_ua:
-            # User-Agent changes are more suspicious
-            logger.warning(f"User-Agent change detected for user {request.user.username}")
-            return True
+            # UA changes are normal (browser updates, SW, etc.) — just update
+            request.session['login_user_agent'] = current_ua
         
         return False
     
