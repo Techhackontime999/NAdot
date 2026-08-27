@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Job, Application, SavedJob, JobAlert
-from .forms import JobForm, ApplicationForm, JobSearchForm, JobAlertForm
+from .forms import JobForm, ApplicationForm, JobSearchForm, JobAlertForm, EasyApplyForm
 
 @login_required
 def job_list(request):
@@ -19,6 +19,7 @@ def job_list(request):
         location = request.GET.get('location')
         workplace_type = request.GET.get('workplace_type')
         job_type = request.GET.get('job_type')
+        easy_apply = request.GET.get('easy_apply')
         
         if query:
             jobs = jobs.filter(
@@ -36,6 +37,9 @@ def job_list(request):
         
         if job_type:
             jobs = jobs.filter(job_type=job_type)
+            
+        if easy_apply == 'true':
+            jobs = jobs.filter(easy_apply=True)
     
     # Pagination
     paginator = Paginator(jobs, 10)  # Show 10 jobs per page
@@ -109,8 +113,11 @@ def apply_job(request, pk):
         messages.warning(request, 'You have already applied for this job.')
         return redirect('jobs:job_detail', pk=job.pk)
     
+    # Use EasyApplyForm for easy_apply jobs, otherwise use ApplicationForm  
+    FormClass = EasyApplyForm if job.easy_apply else ApplicationForm
+    
     if request.method == 'POST':
-        form = ApplicationForm(request.POST, request.FILES)
+        form = FormClass(request.POST, request.FILES)
         if form.is_valid():
             try:
                 application = form.save(commit=False)
@@ -124,9 +131,9 @@ def apply_job(request, pk):
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
-        form = ApplicationForm()
+        form = FormClass()
     
-    return render(request, 'jobs/apply_form.html', {'job': job, 'form': form})
+    return render(request, 'jobs/apply_form.html', {'job': job, 'form': form, 'is_easy_apply': job.easy_apply})
 
 @login_required
 def my_jobs(request):
