@@ -6,7 +6,7 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ['title', 'company', 'location', 'workplace_type', 'job_type', 
-                 'description', 'requirements', 'salary_range']
+                'description', 'requirements', 'salary_range']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all outline-none',
@@ -199,3 +199,37 @@ class JobAlertForm(forms.ModelForm):
         self.fields['job_type'].required = False
         self.fields['job_type'].choices = [('', 'Any Job Type')] + list(Job.JOB_TYPE_CHOICES)
         self.fields['keywords'].required = False
+        
+        
+class EasyApplyForm(forms.ModelForm):
+    """Simplified application form for Easy Apply jobs - resume only"""
+    class Meta:
+        model = Application
+        fields = ['resume']
+        widgets = {
+            'resume': forms.FileInput(attrs={
+                'class': 'absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10',
+                'accept': '.pdf,.doc,.docx',
+                'required': True
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['resume'].required = True
+        self.fields['resume'].help_text = "Upload your resume (PDF, DOC, or DOCX format, max 5MB)"
+    
+    def clean_resume(self):
+        resume = self.cleaned_data.get('resume')
+        if resume:
+            # Check file size (5MB limit)
+            if resume.size > 5 * 1024 * 1024:
+                raise ValidationError("Resume file size must be less than 5MB.")
+            
+            # Check file extension
+            allowed_extensions = ['.pdf', '.doc', '.docx']
+            file_extension = resume.name.lower().split('.')[-1]
+            if f'.{file_extension}' not in allowed_extensions:
+                raise ValidationError("Resume must be in PDF, DOC, or DOCX format.")
+        
+        return resume
