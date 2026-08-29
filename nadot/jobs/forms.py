@@ -2,11 +2,23 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import Job, Application, JobAlert
 
+def validate_resume_file(resume):
+    """Shared validation logic for resume uploads across forms."""
+    if resume:
+        if resume.size > 5 * 1024 * 1024:
+            raise ValidationError("Resume file size must be less than 5MB.")
+        allowed_extensions = ['.pdf', '.doc', '.docx']
+        file_extension = resume.name.lower().split('.')[-1]
+        if f'.{file_extension}' not in allowed_extensions:
+            raise ValidationError("Resume must be in PDF, DOC, or DOCX format.")
+    return resume
+
+
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ['title', 'company', 'location', 'workplace_type', 'job_type', 
-                'description', 'requirements', 'salary_range']
+                'description', 'requirements', 'salary_range', 'easy_apply']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all outline-none',
@@ -44,6 +56,9 @@ class JobForm(forms.ModelForm):
                 'class': 'w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all outline-none',
                 'placeholder': 'e.g., $80,000 - $120,000 or Competitive'
             }),
+            'easy_apply': forms.CheckboxInput(attrs={
+                'class': 'w-5 h-5 rounded border-2 border-gray-300 text-purple-500 focus:ring-purple-400 cursor-pointer'
+            })
         }
     
     def __init__(self, *args, **kwargs):
@@ -113,26 +128,13 @@ class ApplicationForm(forms.ModelForm):
         self.fields['cover_letter'].help_text = "Tell us why you're interested in this position"
     
     def clean_resume(self):
-        resume = self.cleaned_data.get('resume')
-        if resume:
-            # Check file size (5MB limit)
-            if resume.size > 5 * 1024 * 1024:
-                raise ValidationError("Resume file size must be less than 5MB.")
-            
-            # Check file extension
-            allowed_extensions = ['.pdf', '.doc', '.docx']
-            file_extension = resume.name.lower().split('.')[-1]
-            if f'.{file_extension}' not in allowed_extensions:
-                raise ValidationError("Resume must be in PDF, DOC, or DOCX format.")
-        
-        return resume
+        return validate_resume_file(self.cleaned_data.get('resume'))
     
     def clean_cover_letter(self):
         cover_letter = self.cleaned_data.get('cover_letter')
         if cover_letter and len(cover_letter.strip()) < 100:
             raise ValidationError("Cover letter must be at least 100 characters long.")
         return cover_letter.strip() if cover_letter else cover_letter
-
 
 class JobSearchForm(forms.Form):
     """Form for job search functionality"""
@@ -220,16 +222,4 @@ class EasyApplyForm(forms.ModelForm):
         self.fields['resume'].help_text = "Upload your resume (PDF, DOC, or DOCX format, max 5MB)"
     
     def clean_resume(self):
-        resume = self.cleaned_data.get('resume')
-        if resume:
-            # Check file size (5MB limit)
-            if resume.size > 5 * 1024 * 1024:
-                raise ValidationError("Resume file size must be less than 5MB.")
-            
-            # Check file extension
-            allowed_extensions = ['.pdf', '.doc', '.docx']
-            file_extension = resume.name.lower().split('.')[-1]
-            if f'.{file_extension}' not in allowed_extensions:
-                raise ValidationError("Resume must be in PDF, DOC, or DOCX format.")
-        
-        return resume
+        return validate_resume_file(self.cleaned_data.get('resume'))
