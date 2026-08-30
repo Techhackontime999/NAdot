@@ -34,11 +34,13 @@
         {% if form.resume.errors %}<p class="text-xs text-red-500 mt-1">{{ form.resume.errors.0 }}</p>{% endif %}
       </div>
 
+      {% if not is_easy_apply%}
       <div class="form-group">
         <label>Cover Letter</label>
         {{ form.cover_letter }}
         {% if form.cover_letter.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cover_letter.errors.0 }}</p>{% endif %}
       </div>
+      {% endif%}
 
       <div class="flex items-center gap-4 pt-4">
         <button type="submit" class="btn-primary text-sm">Submit Application</button>

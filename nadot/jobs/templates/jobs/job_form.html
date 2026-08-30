@@ -36,6 +36,10 @@
       <div class="form-group"><label>Salary Range (Optional)</label>{{ form.salary_range }}</div>
       <div class="form-group"><label>Job Description</label>{{ form.description }}</div>
       <div class="form-group"><label>Requirements</label>{{ form.requirements }}</div>
+      <div class="form-group flex items-center gap-3">
+        {{ form.easy_apply }}
+        <label for="{{ form.easy_apply.id_for_label}}" class="text-sm cursor-pointer">Enable Easy Apply (quick one-click application)</label>
+      </div>
 
       <div class="flex items-center justify-between pt-6 border-t border-[var(--border-subtle)]">
         <a href="{% url 'jobs:job_list' %}" class="btn-ghost text-sm">Cancel</a>

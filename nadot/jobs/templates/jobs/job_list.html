@@ -65,11 +65,17 @@
             {% endfor %}
           </select>
         </div>
+        <div class="relative flex-1 sm:flex-none">
+          <select name="easy_apply" onchange="this.form.submit()" class="appearance-none w-full bg-[var(--bg-secondary)] text-sm text-[var(--text-secondary)] px-3 py-1.5 pr-8 rounded-[var(--radius-md)] border border-[var(--border-subtle)] cursor-pointer focus:outline-none focus:border-[var(--accent)]">
+            <option value="">All Applications</option>
+            <option value="true" {% if request.GET.easy_apply == 'true' %}selected{% endif %}>Easy Apply</option>
+          </select>
+        </div>
         <div class="search-box flex-1 sm:max-w-[200px]">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="text" name="location" placeholder="Location..." aria-label="Location" value="{{ request.GET.location }}" class="text-sm">
         </div>
-        {% if request.GET.query or request.GET.job_type or request.GET.workplace_type or request.GET.location %}
+        {% if request.GET.query or request.GET.job_type or request.GET.workplace_type or request.GET.location or request.GET.easy_apply%}
         <a href="{% url 'jobs:job_list' %}" class="text-xs text-[var(--accent)] hover:underline text-center sm:text-left sm:ml-auto">Clear filters</a>
         {% endif %}
       </div>
@@ -89,6 +95,9 @@
                 <p class="text-sm text-[var(--text-secondary)] truncate">{{ job.company }} · {{ job.location }}</p>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
                   <span class="badge badge-accent text-[10px]">{{ job.get_job_type_display }}</span>
+                  {% if job.easy_apply%}
+                  <span class="badge badge-success text-[10px]">Easy Apply</span>
+                  {% endif%}
                   <span class="text-xs text-[var(--text-muted)]">Posted {{ job.created_at|timesince }} ago</span>
                 </div>
                 <p class="text-sm text-[var(--text-secondary)] mt-2 line-clamp-2">{{ job.description|truncatewords:30 }}</p>
@@ -115,12 +124,12 @@
     {% if page_obj.has_other_pages %}
     <div class="glass-card p-3 scroll-reveal">
       <div class="pagination">
-        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}" class="pagination-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></a>{% endif %}
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}{% if request.GET.easy_apply %}&easy_apply={{ request.GET.easy_apply }}{% endif %}" class="pagination-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></a>{% endif %}
         {% for i in page_obj.paginator.page_range %}
           {% if i == page_obj.number %}<span class="pagination-btn active">{{ i }}</span>
-          {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}<a href="?page={{ i }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}" class="pagination-btn">{{ i }}</a>{% endif %}
+          {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}<a href="?page={{ i }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}{% if request.GET.easy_apply %}&easy_apply={{ request.GET.easy_apply }}{% endif %}" class="pagination-btn">{{ i }}</a>{% endif %}
         {% endfor %}
-        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}" class="pagination-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>{% endif %}
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query|urlencode }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location|urlencode }}{% endif %}{% if request.GET.job_type %}&job_type={{ request.GET.job_type }}{% endif %}{% if request.GET.workplace_type %}&workplace_type={{ request.GET.workplace_type }}{% endif %}{% if request.GET.easy_apply %}&easy_apply={{ request.GET.easy_apply }}{% endif %}" class="pagination-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></a>{% endif %}
       </div>
     </div>
     {% endif %}
