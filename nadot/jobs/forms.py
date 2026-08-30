@@ -201,8 +201,8 @@ class JobAlertForm(forms.ModelForm):
         self.fields['job_type'].required = False
         self.fields['job_type'].choices = [('', 'Any Job Type')] + list(Job.JOB_TYPE_CHOICES)
         self.fields['keywords'].required = False
-        
-        
+
+
 class EasyApplyForm(forms.ModelForm):
     """Simplified application form for Easy Apply jobs - resume only"""
     class Meta:
@@ -215,11 +215,11 @@ class EasyApplyForm(forms.ModelForm):
                 'required': True
             }),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['resume'].required = True
         self.fields['resume'].help_text = "Upload your resume (PDF, DOC, or DOCX format, max 5MB)"
-    
+
     def clean_resume(self):
         return validate_resume_file(self.cleaned_data.get('resume'))

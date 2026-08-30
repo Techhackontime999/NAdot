@@ -97,8 +97,8 @@ class ApplicationInline(admin.TabularInline):
 
 # Enhanced JobAdmin
 class JobAdmin(admin.ModelAdmin, ExportCSVMixin):
-    list_display = ('title', 'company', 'location', 'job_type','easy_apply','status_badge', 'description_preview')
-    list_filter = ('job_type', 'location', 'is_active','easy_apply' ,JobPostingDateFilter, JobApplicationCountFilter, 'created_at')
+    list_display = ('title', 'company', 'location', 'job_type', 'easy_apply', 'status_badge', 'description_preview')
+    list_filter = ('job_type', 'location', 'is_active', 'easy_apply', JobPostingDateFilter, JobApplicationCountFilter, 'created_at')
     search_fields = ('title', 'company', 'description', 'location', 'requirements',
                     'posted_by__username', 'posted_by__email', 'posted_by__first_name', 'posted_by__last_name')
     date_hierarchy = 'created_at'
@@ -116,7 +116,7 @@ class JobAdmin(admin.ModelAdmin, ExportCSVMixin):
             'fields': ('description', 'requirements', 'salary_range')
         }),
         ('Posting Information', {
-            'fields': ('posted_by', 'is_active','easy_apply','created_at', 'updated_at')
+            'fields': ('posted_by', 'is_active', 'easy_apply', 'created_at', 'updated_at')
         }),
     )
     

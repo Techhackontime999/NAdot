@@ -28,8 +28,8 @@ class Job(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    easy_apply = models.BooleanField(default=False, help_text="Enable quick one-click application") 
-    
+    easy_apply = models.BooleanField(default=False, help_text="Enable quick one-click application")
+
     def __str__(self):
         return f"{self.title} at {self.company}"
 
